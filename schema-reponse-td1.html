@@ -40,6 +40,8 @@
   }
   h3 { font-size: 1.05rem; margin-top: 28px; }
   p { margin: 10px 0; }
+  ul { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
   code {
     background: var(--gray-bg);
     padding: 1px 6px;
@@ -367,6 +369,51 @@
 
   <div class="callout">
     <strong>Idée clé :</strong> les fichiers <code>models/*.ts</code> ne sont que des interfaces TypeScript (aucun code exécuté) — ils servent uniquement à typer ce que l'API renvoie, et doivent rester synchronisés avec les <code>toPublic()</code> du backend et avec <code>API_CONTRACT.md</code>.
+  </div>
+
+  <h2>6. Réponses aux questions du sujet (Mission 1)</h2>
+
+  <h3>Assistant IA utilisé</h3>
+  <div class="card">
+    <p><strong>Modèle :</strong> Claude Sonnet 5 (identifiant <code>claude-sonnet-5</code>), utilisé via Claude Code (l'agent en ligne de commande d'Anthropic).</p>
+    <p><strong>Suivre sa consommation de tokens :</strong></p>
+    <ul>
+      <li>Dans Claude Code : la commande <code>/cost</code> affiche le coût et les tokens consommés pour la session en cours.</li>
+      <li>Sur claude.ai (abonnement Pro/Max) : Paramètres → Usage affiche la consommation par période.</li>
+      <li>En utilisant l'API directement (facturée au token) : le tableau de bord <em>Usage</em> sur console.anthropic.com donne le détail par modèle, avec le coût en dollars.</li>
+    </ul>
+    <p><strong>Qui conseille le meilleur modèle pour une tâche ?</strong> Il n'y a pas d'IA « conseillère » universelle intégrée : c'est un choix humain, guidé par la documentation officielle d'Anthropic (docs.claude.com), qui compare les modèles sur la vitesse, le coût et la capacité de raisonnement, et éventuellement par l'enseignant du TP selon le contexte pédagogique. En pratique, le compromis est : un modèle léger (Haiku) pour des tâches simples et répétitives, un modèle intermédiaire (Sonnet) pour du développement applicatif classique comme ce TP, un modèle plus puissant (Opus) pour du raisonnement complexe ou une architecture critique.</p>
+  </div>
+
+  <h3>Routes du backend effectivement utilisées</h3>
+  <div class="card">
+    <table>
+      <tr><th>Route</th><th>Utilisée par (frontend)</th></tr>
+      <tr><td><code>GET /api/health</code></td><td>Vérification manuelle (préparation obligatoire du TP)</td></tr>
+      <tr><td><code>POST /api/auth/register</code></td><td><code>AuthService.register()</code> — page d'inscription</td></tr>
+      <tr><td><code>POST /api/auth/login</code></td><td><code>AuthService.login()</code> — page de connexion</td></tr>
+      <tr><td><code>GET /api/users/me</code></td><td><code>AuthService.profile()</code> — chargement du profil</td></tr>
+      <tr><td><code>PUT /api/users/me</code></td><td><code>AuthService.update()</code> — modification du nom</td></tr>
+      <tr><td><code>GET /api/tracks</code></td><td><code>TrackService.list()</code> — liste paginée des pistes</td></tr>
+      <tr><td><code>POST /api/tracks</code></td><td><code>TrackService.upload()</code> — envoi d'un fichier audio</td></tr>
+      <tr><td><code>GET /api/tracks/:id/audio</code></td><td><code>TrackService.audio()</code> — lecture d'une piste</td></tr>
+      <tr><td><code>DELETE /api/tracks/:id</code></td><td>Définie côté backend (bonus) mais <strong>non appelée</strong> : aucun bouton de suppression dans le frontend actuel</td></tr>
+    </table>
+  </div>
+
+  <h3>Où s'effectue la mise à jour du profil utilisateur ?</h3>
+  <div class="card">
+    <p><strong>Côté frontend :</strong></p>
+    <ul>
+      <li><code>profile-page.html</code> : le formulaire (<code>formControlName="name"</code>) et <code>(ngSubmit)="save()"</code></li>
+      <li><code>profile-page.ts</code> : la méthode <code>save()</code> lit le formulaire et appelle le service</li>
+      <li><code>shared/services/auth.service.ts</code> : la méthode <code>update(name)</code> envoie <code>PUT /api/users/me</code> puis met à jour le signal <code>currentUser</code></li>
+    </ul>
+    <p><strong>Côté backend :</strong></p>
+    <ul>
+      <li><code>backend/src/app.js</code> : la route <code>app.put("/api/users/me", auth, ...)</code> — le middleware <code>auth</code> vérifie d'abord le JWT, puis le handler appelle <code>User.findByIdAndUpdate(req.auth.sub, { $set: { name: req.body?.name } }, ...)</code></li>
+      <li><code>backend/src/models/User.js</code> : le schéma Mongoose valide le nouveau nom (<code>minlength</code>) et <code>toPublic()</code> formate la réponse renvoyée</li>
+    </ul>
   </div>
 
 </div>
