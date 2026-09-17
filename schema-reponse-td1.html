@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TP1 — Mission 0 : cartographie de l'architecture</title>
+<style>
+  :root {
+    --bg: #f7f7f9;
+    --panel: #ffffff;
+    --text: #1c1c1e;
+    --muted: #5b5b63;
+    --border: #e2e2e7;
+    --blue: #2563eb;
+    --blue-bg: #eaf1ff;
+    --green: #16794f;
+    --green-bg: #e8f6ee;
+    --orange: #b3590a;
+    --orange-bg: #fdefe1;
+    --gray: #4b5563;
+    --gray-bg: #eef0f3;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 16px 64px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 1.7rem; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); margin-top: 0; margin-bottom: 32px; }
+  h2 {
+    font-size: 1.25rem;
+    margin-top: 48px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+  h3 { font-size: 1.05rem; margin-top: 28px; }
+  p { margin: 10px 0; }
+  code {
+    background: var(--gray-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+    font-family: "SF Mono", Consolas, monospace;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.93rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th { color: var(--muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.02em; }
+  td.file { font-family: "SF Mono", Consolas, monospace; font-size: 0.87rem; white-space: nowrap; color: var(--blue); }
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .badge.public { background: var(--green-bg); color: var(--green); }
+  .badge.protected { background: var(--orange-bg); color: var(--orange); }
+
+  /* Diagramme de flux */
+  .flow { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 24px 0; }
+  .step {
+    width: 100%;
+    max-width: 620px;
+    border-radius: 10px;
+    padding: 12px 18px;
+    border: 1.5px solid transparent;
+    font-size: 0.93rem;
+  }
+  .step .label { font-weight: 700; font-family: "SF Mono", Consolas, monospace; font-size: 0.85rem; }
+  .step .desc { color: var(--muted); margin-top: 3px; }
+  .step.frontend { background: var(--blue-bg); border-color: #c3d9ff; }
+  .step.frontend .label { color: var(--blue); }
+  .step.network { background: var(--gray-bg); border-color: #d7d9de; }
+  .step.network .label { color: var(--gray); }
+  .step.backend { background: var(--green-bg); border-color: #bfe6cf; }
+  .step.backend .label { color: var(--green); }
+  .arrow { color: #9c9ca6; font-size: 1.3rem; line-height: 1; margin: 2px 0; }
+
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 14px 0 4px; font-size: 0.85rem; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .dot.frontend { background: var(--blue); }
+  .dot.network { background: var(--gray); }
+  .dot.backend { background: var(--green); }
+
+  .callout {
+    background: #fff8e6;
+    border: 1px solid #f2dfa0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 0.93rem;
+  }
+  .callout strong { color: #8a6415; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>TP1 — Guitar Practice Cloud</h1>
+  <p class="subtitle">Mission 0 : cartographie de l'application, schéma du flux de connexion, et rôle de chaque fichier (backend + frontend)</p>
+
+  <h2>1. Architecture générale</h2>
+  <div class="card">
+    <p>Le flux de données suit toujours le même chemin, jamais l'inverse :</p>
+    <p style="text-align:center; font-family: 'SF Mono', Consolas, monospace; font-size:0.95rem; color:var(--text);">
+      composant Angular → service Angular → HttpClient → API Express → MongoDB
+    </p>
+    <p><strong>Angular ne parle jamais directement à MongoDB.</strong> Le seul point de contact avec la base de données est le backend Express, via des requêtes HTTP passées par un proxy de développement (<code>proxy.conf.json</code>).</p>
+  </div>
+
+  <h2>2. Schéma annoté : que se passe-t-il quand on clique sur « Se connecter » ?</h2>
+
+  <div class="legend">
+    <span><i class="dot frontend"></i> Frontend Angular</span>
+    <span><i class="dot network"></i> Réseau / transport</span>
+    <span><i class="dot backend"></i> Backend Express + MongoDB</span>
+  </div>
+
+  <div class="flow">
+
+    <div class="step frontend">
+      <div class="label">login-page.html — clic sur « Se connecter »</div>
+      <div class="desc">Déclenche <code>(ngSubmit)="submit()"</code></div>
+    </div>
+    <div class="arrow">↓</div>
+
+    <div class="step frontend">
+      <div class="label">LoginPageComponent.submit()</div>
+      <div class="desc">Lit le Reactive Form <code>{ email, password }</code></div>
+    </div>
+    <div class="arrow">↓</div>
+
+    <div class="step frontend">
+      <div class="label">AuthService.login(email, password)</div>
+      <div class="desc"><code>http.post('/api/auth/login', { email, password })</code> — route publique</div>
+    </div>
+    <div class="arrow">↓</div>
+
+    <div class="step network">
+      <div class="label">authInterceptor</div>
+      <div class="desc">Aucun token pour l'instant → la requête part <strong>sans</strong> header <code>Authorization</code></div>
+    </div>
+    <div class="arrow">↓</div>
+
+    <div class="step network">
+      <div class="label">HttpClient → proxy.conf.json</div>
+      <div class="desc"><code>/api</code> est redirigé vers <code>http://localhost:3000</code> (évite les soucis de CORS en dev)</div>
+    </div>
+    <div class="arrow">↓</div>
+
+    <div class="step backend">
+      <div class="label">Express — POST /api/auth/login (app.js)</div>
+      <div class="desc">Cherche l'utilisateur dans MongoDB via Mongoose, compare le mot de passe avec <code>bcrypt.compare()</code></div>
+    </div>
+    <div class="arrow">↓</div>
+
+    <div class="step backend">
+      <div class="label">Réponse 200 { token, user }</div>
+      <div class="desc">Le token JWT est signé côté serveur avec un secret jamais envoyé au frontend</div>
+    </div>
+    <div class="arrow">↓</div>
+
+    <div class="step frontend">
+      <div class="label">AuthService.storeAuthentication()</div>
+      <div class="desc"><code>localStorage.setItem('gpc_token', token)</code> + mise à jour des signals <code>token</code> et <code>currentUser</code></div>
+    </div>
+    <div class="arrow">↓</div>
+
+    <div class="step frontend">
+      <div class="label">router.navigateByUrl('/tracks')</div>
+      <div class="desc">Le <code>authGuard</code> vérifie <code>auth.token()</code> → non vide → navigation autorisée</div>
+    </div>
+    <div class="arrow">↓</div>
+
+    <div class="step frontend">
+      <div class="label">TracksPageComponent s'affiche</div>
+      <div class="desc">Toutes les prochaines requêtes passeront par <code>authInterceptor</code> <strong>avec</strong> le header <code>Authorization: Bearer &lt;token&gt;</code></div>
+    </div>
+
+  </div>
+
+  <div class="callout">
+    <strong>Point clé :</strong> l'intercepteur ne fait pas la différence entre route publique et protégée — il ajoute toujours le header s'il existe un token. C'est le <code>authGuard</code> qui empêche d'atteindre une page protégée sans être connecté, et le middleware <code>auth</code> côté backend qui rejetterait (401) une requête sans JWT valide.
+  </div>
+
+  <h2>3. Routes publiques vs protégées (API_CONTRACT.md)</h2>
+  <table>
+    <tr><th>Méthode</th><th>Route</th><th>Accès</th></tr>
+    <tr><td><code>GET</code></td><td><code>/api/health</code></td><td><span class="badge public">publique</span></td></tr>
+    <tr><td><code>POST</code></td><td><code>/api/auth/register</code></td><td><span class="badge public">publique</span></td></tr>
+    <tr><td><code>POST</code></td><td><code>/api/auth/login</code></td><td><span class="badge public">publique</span></td></tr>
+    <tr><td><code>GET / PUT</code></td><td><code>/api/users/me</code></td><td><span class="badge protected">protégée (JWT)</span></td></tr>
+    <tr><td><code>GET / POST</code></td><td><code>/api/tracks</code></td><td><span class="badge protected">protégée (JWT)</span></td></tr>
+    <tr><td><code>GET</code></td><td><code>/api/tracks/:id/audio</code></td><td><span class="badge protected">protégée (JWT)</span></td></tr>
+    <tr><td><code>DELETE</code></td><td><code>/api/tracks/:id</code></td><td><span class="badge protected">protégée (JWT, bonus)</span></td></tr>
+  </table>
+
+  <h2>4. Backend (<code>backend/</code>) — Express + MongoDB</h2>
+  <p>C'est le serveur : il reçoit des requêtes HTTP, parle à MongoDB, renvoie du JSON. Il ne connaît rien d'Angular.</p>
+  <table>
+    <tr><th>Fichier</th><th>Rôle</th><th>Contenu</th></tr>
+    <tr>
+      <td class="file">src/server.js</td>
+      <td>Point de démarrage réel</td>
+      <td>Se connecte à MongoDB Atlas, crée le compte démo s'il n'existe pas encore, puis ouvre le port d'écoute (3000)</td>
+    </tr>
+    <tr>
+      <td class="file">src/app.js</td>
+      <td>Cœur de l'API : toutes les routes et règles métier</td>
+      <td>Fonction <code>createApp()</code> : middlewares (CORS, JSON, logs), fonction <code>token()</code> qui fabrique un JWT, middleware <code>auth</code> qui le vérifie, config Multer pour l'upload, et les 8 routes (health, register, login, users/me ×2, tracks ×3), plus un gestionnaire d'erreurs central</td>
+    </tr>
+    <tr>
+      <td class="file">src/models/User.js</td>
+      <td>Forme d'un utilisateur en base</td>
+      <td>Schéma Mongoose (name, email, passwordHash) ; hache le mot de passe avec bcrypt avant sauvegarde ; méthode <code>toPublic()</code> qui ne renvoie jamais le hash</td>
+    </tr>
+    <tr>
+      <td class="file">src/models/Track.js</td>
+      <td>Forme d'une piste audio en base</td>
+      <td>Schéma Mongoose (titre, propriétaire, nom du fichier stocké, taille…) ; <code>toPublic()</code> cache le nom technique du fichier sur disque</td>
+    </tr>
+    <tr>
+      <td class="file">package.json</td>
+      <td>Dépendances et scripts</td>
+      <td><code>express</code> (serveur HTTP), <code>mongoose</code> (MongoDB), <code>bcryptjs</code> (hash des mots de passe), <code>jsonwebtoken</code> (JWT), <code>multer</code> (upload fichiers), <code>cors</code></td>
+    </tr>
+    <tr>
+      <td class="file">.env</td>
+      <td>Secrets locaux (jamais commités)</td>
+      <td><code>MONGODB_URI</code>, <code>JWT_SECRET</code>, <code>PORT</code></td>
+    </tr>
+    <tr>
+      <td class="file">test/api.test.js</td>
+      <td>Tests automatisés</td>
+      <td>Vérifie que les routes répondent comme prévu, sans passer par un vrai navigateur</td>
+    </tr>
+  </table>
+  <div class="callout">
+    <strong>Idée clé :</strong> <code>app.js</code> ne démarre pas le serveur lui-même (pas de <code>.listen()</code>) — c'est <code>server.js</code> qui appelle <code>createApp()</code> et ouvre le port. Cette séparation permet aux tests d'utiliser l'application sans réellement écouter sur un port réseau.
+  </div>
+
+  <h2>5. Frontend (<code>frontend-starter/src/</code>) — Angular</h2>
+  <p>C'est l'interface : ce que l'utilisateur voit et clique, qui appelle l'API en HTTP.</p>
+
+  <h3>Démarrage et configuration</h3>
+  <table>
+    <tr><th>Fichier</th><th>Rôle</th><th>Contenu</th></tr>
+    <tr>
+      <td class="file">src/main.ts</td>
+      <td>Point d'entrée de l'application</td>
+      <td>Démarre <code>AppComponent</code>, active le routeur, active <code>HttpClient</code> et y branche l'intercepteur JWT</td>
+    </tr>
+    <tr>
+      <td class="file">src/app/routes.ts</td>
+      <td>Plan du site</td>
+      <td>Associe chaque URL (<code>/login</code>, <code>/tracks</code>…) à un composant ; protège <code>profile</code> et <code>tracks</code> avec le guard</td>
+    </tr>
+    <tr>
+      <td class="file">proxy.conf.json</td>
+      <td>Évite les soucis de CORS en dev</td>
+      <td>Redirige tout ce qui commence par <code>/api</code> vers <code>http://localhost:3000</code> (le backend)</td>
+    </tr>
+  </table>
+
+  <h3>Page racine</h3>
+  <table>
+    <tr><th>Fichier</th><th>Rôle</th><th>Contenu</th></tr>
+    <tr>
+      <td class="file">components/app/app.ts + .html</td>
+      <td>Le « cadre » toujours affiché</td>
+      <td>Header avec la navigation + <code>&lt;router-outlet&gt;</code> qui affiche la page active en dessous</td>
+    </tr>
+  </table>
+
+  <h3>Pages (un composant = un .ts + un .html + un .css)</h3>
+  <table>
+    <tr><th>Fichier</th><th>Rôle</th><th>Contenu</th></tr>
+    <tr>
+      <td class="file">login-page.ts</td>
+      <td>Formulaire de connexion</td>
+      <td>Un <code>FormGroup</code> (email + mot de passe) pré-rempli avec le compte démo ; au submit, appelle <code>AuthService.login()</code> puis redirige vers <code>/tracks</code></td>
+    </tr>
+    <tr>
+      <td class="file">register-page.ts</td>
+      <td>Formulaire d'inscription</td>
+      <td>Même logique avec name/email/password, appelle <code>AuthService.register()</code>, redirige vers <code>/profile</code></td>
+    </tr>
+    <tr>
+      <td class="file">profile-page.ts</td>
+      <td>Voir / modifier son nom</td>
+      <td><code>load()</code> récupère le profil (<code>AuthService.profile()</code>), <code>save()</code> l'enregistre (<code>AuthService.update()</code>)</td>
+    </tr>
+    <tr>
+      <td class="file">tracks-page.ts</td>
+      <td>Bibliothèque audio</td>
+      <td>Liste paginée des pistes, sélection + upload d'un fichier, lecture audio (récupère un blob et crée une URL locale pour la balise <code>&lt;audio&gt;</code>)</td>
+    </tr>
+  </table>
+
+  <h3>shared/ — le code réutilisé par toutes les pages</h3>
+  <table>
+    <tr><th>Fichier</th><th>Rôle</th><th>Contenu</th></tr>
+    <tr>
+      <td class="file">services/auth.service.ts</td>
+      <td>Cerveau de l'authentification</td>
+      <td>Deux <code>signal</code> (<code>token</code>, <code>currentUser</code>) qui représentent l'état courant ; méthodes <code>login / register / profile / update / logout</code> qui appellent l'API et mettent à jour les signals + le <code>localStorage</code></td>
+    </tr>
+    <tr>
+      <td class="file">services/track.service.ts</td>
+      <td>Appels HTTP liés aux pistes</td>
+      <td><code>list()</code>, <code>upload()</code> (FormData), <code>audio()</code> (récupère un blob)</td>
+    </tr>
+    <tr>
+      <td class="file">interceptors/auth.interceptor.ts</td>
+      <td>Ajoute automatiquement le JWT</td>
+      <td>Avant chaque requête HTTP sortante, ajoute le header <code>Authorization: Bearer …</code> si un token existe</td>
+    </tr>
+    <tr>
+      <td class="file">guards/auth.guard.ts</td>
+      <td>Empêche d'accéder à une page sans être connecté</td>
+      <td>Si pas de token → redirige vers <code>/login</code> avant même d'afficher la page</td>
+    </tr>
+    <tr>
+      <td class="file">models/user.model.ts</td>
+      <td>Forme d'un utilisateur côté Angular</td>
+      <td><code>{ id, name, email, createdAt }</code> — doit correspondre à <code>User.toPublic()</code> du backend</td>
+    </tr>
+    <tr>
+      <td class="file">models/track.model.ts</td>
+      <td>Forme d'une piste côté Angular</td>
+      <td><code>{ id, title, originalName, mimeType, size, createdAt }</code> — correspond à <code>Track.toPublic()</code></td>
+    </tr>
+    <tr>
+      <td class="file">models/auth-response.model.ts</td>
+      <td>Forme de la réponse login / register</td>
+      <td><code>{ token, user }</code></td>
+    </tr>
+    <tr>
+      <td class="file">models/page.model.ts</td>
+      <td>Forme générique d'une réponse paginée</td>
+      <td><code>{ items, page, limit, total, pages }</code>, réutilisable pour n'importe quelle liste</td>
+    </tr>
+  </table>
+
+  <div class="callout">
+    <strong>Idée clé :</strong> les fichiers <code>models/*.ts</code> ne sont que des interfaces TypeScript (aucun code exécuté) — ils servent uniquement à typer ce que l'API renvoie, et doivent rester synchronisés avec les <code>toPublic()</code> du backend et avec <code>API_CONTRACT.md</code>.
+  </div>
+
+</div>
+</body>
+</html>
