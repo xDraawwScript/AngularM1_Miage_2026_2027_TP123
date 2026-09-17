@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../shared/services/auth.service';
 
@@ -7,14 +7,19 @@ import { AuthService } from '../../shared/services/auth.service';
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.css',
 })
-export class ProfilePageComponent {
+export class ProfilePageComponent implements OnDestroy {
   readonly auth = inject(AuthService);
   readonly form = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
 
   constructor() {
+    document.body.classList.add('theme-metallica');
     this.load();
+  }
+
+  ngOnDestroy(): void {
+    document.body.classList.remove('theme-metallica');
   }
 
   load(): void {
