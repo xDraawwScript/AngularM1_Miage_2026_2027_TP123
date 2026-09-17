@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnDestroy, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Track } from '../../shared/models/track.model';
 import { TrackService } from '../../shared/services/track.service';
@@ -8,7 +8,7 @@ import { TrackService } from '../../shared/services/track.service';
   templateUrl: './tracks-page.html',
   styleUrl: './tracks-page.css',
 })
-export class TracksPageComponent {
+export class TracksPageComponent implements OnDestroy {
   private readonly service = inject(TrackService);
 
   readonly tracks = signal<Track[]>([]);
@@ -20,7 +20,12 @@ export class TracksPageComponent {
   file?: File;
 
   constructor() {
+    document.body.classList.add('theme-fleetwood');
     this.load();
+  }
+
+  ngOnDestroy(): void {
+    document.body.classList.remove('theme-fleetwood');
   }
 
   choose(event: Event): void {

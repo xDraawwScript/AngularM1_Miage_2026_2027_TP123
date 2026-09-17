@@ -1,1 +1,53 @@
-:host { display: block; }
+:host {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+}
+
+.hero {
+  background: linear-gradient(135deg, #7a4a1f, #c98a3e 55%, #f2c879);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero h1 {
+  font-family: 'Pacifico', cursive;
+  font-weight: 400;
+  font-size: 3rem;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle, #2b1a0d 0 3px, transparent 3px 10px);
+  opacity: 0.3;
+}
+
+.grid .card {
+  background: #fff8ec;
+  border: 1px solid #e8b974;
+  border-radius: 22px;
+}
+
+.grid .card h2 {
+  font-family: 'Pacifico', cursive;
+  font-weight: 400;
+  color: #7a4a1f;
+}
+
+button {
+  background: #a85a1f;
+  border-radius: 999px;
+}
+
+button:hover:not(:disabled) {
+  background: #7a4210;
+}
+
+.track {
+  border-bottom: 1px dashed #e8b974;
+}
