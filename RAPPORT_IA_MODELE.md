@@ -202,3 +202,44 @@ Travail effectué sur la branche `tp-2` (créée depuis `main`), pour isoler le 
 - Pourquoi committer la valeur de `page` seulement en cas de succès évite une désynchronisation entre l'étiquette de pagination affichée et les données réellement montrées à l'écran.
 - Pourquoi il faut remettre `error` à `''` au début de chaque tentative de chargement (`load()`), et pas seulement le définir en cas d'échec : sinon un message d'erreur resterait affiché indéfiniment après une tentative suivante réussie.
 - Pourquoi `error.error?.message` peut être `undefined` pour certaines pannes (ex. erreur serveur générique sans corps JSON exploitable, comme le crash MongoDB rencontré en TP1) — d'où l'importance du message de repli fixe.
+
+## Mission 2 (AVANCÉ) — Angular Material Paginator
+
+**Objectif.** Remplacer les boutons Préc./Suiv. faits main par le composant `<mat-paginator>` d'Angular Material sur la page Tracks (partie explicitement marquée AVANCÉ dans le sujet).
+
+**Prompt principal.** « AVANCÉ — Angular Material [...] On fait ça ».
+
+**Débat et décisions d'architecture (avant implémentation).**
+1. **Style visuel du paginator** : garder le look Material par défaut (bleu/indigo, Roboto) plutôt que de le retheme pour matcher l'habillage « pochette vinyle » (crème, Cormorant Garamond) déjà en place sur la page Tracks. → Décision de l'étudiant : **garder le défaut**, zéro travail de retheming CSS.
+2. **Animations Material** (ripple au clic, transitions) : activées via `provideAnimationsAsync()` plutôt que désactivées (`provideNoopAnimations()`). → Décision de l'étudiant : **activées**.
+
+**Plan proposé par l'agent (implémentation).**
+- `npx ng generate @angular/material:ng-add --theme=azure-blue --defaults` pour installer `@angular/material`/`@angular/cdk` et générer le théming (le flag `--theme=indigo-pink`, nom de thème Material 2 « legacy », a d'abord fait planter le schematic — Angular Material 22 est passé au théming Material 3, qui utilise d'autres noms de thème comme `azure-blue`).
+- Ajout manuel de `@angular/animations` (peer dependency non installée automatiquement) et alignement de tous les paquets `@angular/*` sur la même version exacte (`22.2.0`) pour éviter des conflits de peer dependencies avec npm.
+- Édition du fichier généré `src/material-theme.scss` pour retirer le reset global `body { background-color / color / font: ... }` qu'impose le schematic par défaut : avec 4 pages ayant chacune leur typographie bespoke (Bebas Neue, Rye, Unica One, Cormorant Garamond...), un reset global aurait pu entrer en conflit — conservé uniquement le théming des composants Material eux-mêmes.
+- `tracks-page.ts` : import de `MatPaginatorModule`, ajout du signal `total` (le paginator a besoin du nombre total d'éléments, pas du nombre de pages), méthode `onPageEvent(event: PageEvent)` convertissant l'index 0-based du paginator vers la page 1-based de l'appli.
+- `tracks-page.html` : remplacement du `<div class="pager">` par `<mat-paginator [length] [pageSize]="5" [pageIndex] [hidePageSize]="true" [showFirstLastButtons]="true" (page)="onPageEvent($event)">`.
+- Ajout de `src/index.html` : police d'icônes Material Symbols (sinon les flèches de navigation s'affichent en texte brut, ex. `chevron_left`).
+- Ajout de `mat-paginator-intl-fr.ts` : `mat-paginator` n'a aucune traduction française par défaut (affichait « 1 – 1 of 1 »), un provider `MatPaginatorIntl` francisé a été ajouté sur le composant.
+
+**Bug découvert et corrigé en testant.** `mat-paginator` gère un état interne (`pageIndex`) qui avance **visuellement dès le clic**, avant même la réponse du serveur — contrairement aux anciens boutons faits main qui lisaient directement le signal `page`. Comme la Mission 2 a fait le choix « rollback » (ne committer `page` qu'en cas de succès), si une requête échoue et que la valeur de `page()-1` ne change donc pas, Angular ne repousse pas cette valeur inchangée au paginator, qui reste alors visuellement décalé (constaté en test : affichait « 1 – 5 sur 6 » alors que les données réellement affichées étaient toujours celles de la page 2). Corrigé en ajoutant un `@ViewChild(MatPaginator)` et en forçant `this.paginator.pageIndex = this.page() - 1` dans le callback d'erreur, pour resynchroniser l'état interne du composant indépendamment de la détection de changement d'Angular.
+
+**Vérifications réalisées.**
+- Build (`npm start`) sans erreur après résolution des conflits de versions.
+- Ajout temporaire de 5 pistes de test via `curl` (upload non scriptable facilement dans le navigateur automatisé) pour obtenir 2 pages ; navigation avant/arrière avec vraies requêtes `GET /api/tracks?page=2&limit=5` visibles en Network.
+- Test du bug ci-dessus (backend coupé pendant la navigation) avant et après le correctif `@ViewChild`.
+- Nettoyage : les 5 pistes de test supprimées via `DELETE /api/tracks/:id` après vérification, retour à l'état initial (1 piste).
+- Non-régression vérifiée sur les pages login/register/profile (typographies bespoke intactes malgré l'ajout du théming Material global).
+
+**Erreurs ou propositions rejetées.**
+- `--theme=indigo-pink` (nom Material 2) : rejeté par le schematic lui-même (`Cannot read properties of undefined (reading 'primary')`), remplacé par `--theme=azure-blue` (nom Material 3 valide dans cette version).
+- Laisser le reset de typographie global généré par le schematic : rejeté et retiré manuellement, pour ne pas risquer d'écraser les 4 thèmes de page déjà en place.
+
+**Fichiers effectivement modifiés.** `package.json`, `angular.json`, `src/index.html`, `src/main.ts`, `src/material-theme.scss` (nouveau), `tracks-page.ts`, `tracks-page.html`, `mat-paginator-intl-fr.ts` (nouveau) — commit `03c9195` (branche `tp-2`).
+
+**Preuve de fonctionnement.** Voir « Vérifications réalisées » : navigation réelle entre 2 pages avec requêtes serveur observées, bug de désynchronisation du paginator reproduit puis corrigé et re-testé.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi `mat-paginator` a besoin de `length` (nombre total d'éléments) et non `pages` (nombre de pages) — c'est lui qui recalcule le nombre de pages en interne à partir de `length`/`pageSize`.
+- Pourquoi un composant tiers avec état interne (comme `mat-paginator`) ne se comporte pas comme un `@if`/`@for` purement déclaratif lié à un Signal : il peut avancer optimistiquement de son propre chef, ce qui oblige parfois à le resynchroniser manuellement via `@ViewChild` plutôt que par un simple binding `[pageIndex]`.
+- Pourquoi Angular ne réapplique pas un `@Input()` si sa valeur liée n'a pas changé d'un cycle de détection de changement à l'autre — la cause racine du bug de resynchronisation observé.
