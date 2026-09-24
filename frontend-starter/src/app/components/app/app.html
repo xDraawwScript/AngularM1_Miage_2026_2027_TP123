@@ -4,6 +4,9 @@
     <small>Le cloud qui manque à votre ampli</small>
   </div>
   <nav aria-label="Navigation principale">
+    @if (auth.currentUser(); as user) {
+      <span class="username">{{ user.name }}</span>
+    }
     <a routerLink="/tracks">Backing tracks</a>
     @if (auth.token()) {
       <a routerLink="/profile">Profil</a>
