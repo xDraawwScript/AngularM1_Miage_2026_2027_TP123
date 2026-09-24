@@ -1,19 +1,32 @@
-import { Component, inject, OnDestroy, signal } from '@angular/core';
+import { Component, inject, OnDestroy, signal, ViewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Track } from '../../shared/models/track.model';
 import { TrackService } from '../../shared/services/track.service';
+import { FrenchPaginatorIntl } from './mat-paginator-intl-fr';
 
 @Component({
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, MatPaginatorModule],
   templateUrl: './tracks-page.html',
   styleUrl: './tracks-page.css',
+  providers: [{ provide: MatPaginatorIntl, useClass: FrenchPaginatorIntl }],
 })
 export class TracksPageComponent implements OnDestroy {
   private readonly service = inject(TrackService);
 
+  /**
+   * mat-paginator gère un état interne à lui (il avance visuellement dès le clic,
+   * avant même la réponse du serveur) : contrairement à nos anciens boutons faits
+   * main, rebinder `[pageIndex]` avec la même valeur qu'avant ne suffit pas à le
+   * faire revenir en arrière si Angular ne détecte aucun changement de valeur.
+   * D'où la resynchronisation manuelle dans le callback d'erreur de `load()`.
+   */
+  @ViewChild(MatPaginator) private paginator?: MatPaginator;
+
   readonly tracks = signal<Track[]>([]);
   readonly page = signal(1);
   readonly pages = signal(1);
+  readonly total = signal(0);
   readonly loading = signal(false);
   readonly error = signal('');
   readonly audioUrl = signal('');
@@ -47,6 +60,7 @@ export class TracksPageComponent implements OnDestroy {
         console.debug('[TracksPage] Pistes chargées', response.items.length);
         this.tracks.set(response.items);
         this.pages.set(response.pages);
+        this.total.set(response.total);
         this.page.set(targetPage);
         this.loading.set(false);
       },
@@ -54,12 +68,16 @@ export class TracksPageComponent implements OnDestroy {
         console.error('[TracksPage] Chargement impossible', error);
         this.error.set(error.error?.message ?? 'Impossible de charger la bibliothèque');
         this.loading.set(false);
+        if (this.paginator) {
+          this.paginator.pageIndex = this.page() - 1;
+        }
       },
     });
   }
 
-  go(page: number): void {
-    this.load(page);
+  /** mat-paginator est indexé à partir de 0, l'appli à partir de 1. */
+  onPageEvent(event: PageEvent): void {
+    this.load(event.pageIndex + 1);
   }
 
   upload(): void {
