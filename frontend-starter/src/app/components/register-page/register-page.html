@@ -25,7 +25,13 @@
           <small class="field-error">Mot de passe requis (8 caractères minimum)</small>
         }
       </label>
-      <button type="submit" [disabled]="form.invalid">Créer mon compte</button>
+      <button type="submit" [disabled]="form.invalid || submitting()">
+        @if (submitting()) {
+          <span class="spinner"></span> Création…
+        } @else {
+          Créer mon compte
+        }
+      </button>
     </form>
     @if (error()) {
       <p class="error">{{ error() }}</p>

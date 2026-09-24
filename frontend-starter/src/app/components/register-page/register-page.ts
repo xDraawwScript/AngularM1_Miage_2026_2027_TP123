@@ -21,7 +21,8 @@ export class RegisterPageComponent implements OnDestroy {
   }
 
   readonly error = signal('');
-  
+  readonly submitting = signal(false);
+
   readonly form = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
@@ -32,6 +33,9 @@ export class RegisterPageComponent implements OnDestroy {
   });
 
   submit(): void {
+    if (this.submitting()) return;
+    this.submitting.set(true);
+    this.error.set('');
     const values = this.form.getRawValue();
     this.auth.register(values.name, values.email, values.password).subscribe({
       next: () => {
@@ -41,6 +45,7 @@ export class RegisterPageComponent implements OnDestroy {
       error: (error: { error?: { message?: string } }) => {
         console.error('[RegisterPage] Échec de l’inscription', error);
         this.error.set(error.error?.message ?? 'Erreur d’inscription');
+        this.submitting.set(false);
       },
     });
   }

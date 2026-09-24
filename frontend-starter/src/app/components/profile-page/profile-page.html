@@ -4,7 +4,25 @@
     <h1>Mon profil</h1>
   </div>
 
-  <button type="button" class="reload" (click)="load()">↻ Charger mon profil</button>
+  <button type="button" class="reload" (click)="load()" [disabled]="loading()">
+    @if (loading()) {
+      <span class="spinner"></span> Chargement…
+    } @else {
+      ↻ Charger mon profil
+    }
+  </button>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (loading() && !auth.currentUser()) {
+    <div class="skeleton-spec">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+  }
 
   @if (auth.currentUser(); as user) {
     <dl class="spec">
@@ -24,7 +42,16 @@
 
     <form [formGroup]="form" (ngSubmit)="save()" class="rename">
       <label>Nouveau nom<input formControlName="name" /></label>
-      <button type="submit">[ Enregistrer ]</button>
+      <button type="submit" [disabled]="form.invalid || saving()">
+        @if (saving()) {
+          <span class="spinner"></span> Enregistrement…
+        } @else {
+          [ Enregistrer ]
+        }
+      </button>
+      @if (saved()) {
+        <span class="saved-tag">✓ Enregistré</span>
+      }
     </form>
   }
 </section>

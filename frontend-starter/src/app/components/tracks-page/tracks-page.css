@@ -19,6 +19,7 @@
   border-bottom: 2px solid #3a2a18;
   padding-bottom: 1.6rem;
   margin-bottom: 2.6rem;
+  animation: fadeInUp 0.6s ease both;
 }
 
 .sleeve-head .eyebrow {
@@ -47,6 +48,14 @@
   grid-template-columns: 1fr 1.6fr;
   gap: 5vw;
 }
+
+.side {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease both;
+}
+
+.side-a { animation-delay: 0.1s; }
+.side-b { animation-delay: 0.2s; }
 
 .side h2 {
   font-size: 1.5rem;
@@ -144,6 +153,31 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  opacity: 0;
+  animation: fadeInUp 0.45s ease both;
+}
+
+.track-card:nth-child(1) { animation-delay: 0.05s; }
+.track-card:nth-child(2) { animation-delay: 0.1s; }
+.track-card:nth-child(3) { animation-delay: 0.15s; }
+.track-card:nth-child(4) { animation-delay: 0.2s; }
+.track-card:nth-child(5) { animation-delay: 0.25s; }
+
+.track-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(58, 42, 24, 0.18);
+  border-color: #b8895a;
+}
+
+.skeleton-card {
+  background: #fffaf0;
+  border: 1px solid #ecd9b8;
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  height: 148px;
+  background-image: linear-gradient(90deg, #fffaf0 25%, #f3e6cc 37%, #fffaf0 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
 }
 
 .track-card h3 {
@@ -219,6 +253,7 @@
 .track-card .delete:hover {
   background: #8a3a2a;
   color: #f1e6d3;
+  transform: scale(1.08);
 }
 
 .pager {
@@ -243,6 +278,7 @@
 audio {
   width: 100%;
   margin-top: 1.2rem;
+  animation: fadeInUp 0.4s ease both;
 }
 
 @media (max-width: 760px) {

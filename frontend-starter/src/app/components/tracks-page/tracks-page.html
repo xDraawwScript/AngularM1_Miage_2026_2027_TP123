@@ -20,23 +20,35 @@
         </div>
       }
       <button type="button" (click)="upload()" [disabled]="!file || uploadProgress() !== null">
-        {{ uploadProgress() !== null ? 'Envoi…' : 'Envoyer' }}
+        @if (uploadProgress() !== null) {
+          <span class="spinner"></span> Envoi…
+        } @else {
+          Envoyer
+        }
       </button>
     </article>
 
     <article class="side side-b">
       <div class="row">
         <h2>Mes pistes</h2>
-        <button type="button" (click)="load()">Actualiser</button>
+        <button type="button" (click)="load()" [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner"></span>
+          } @else {
+            Actualiser
+          }
+        </button>
       </div>
       <input class="filter-input" [formControl]="filterTitle" placeholder="Filtrer par titre…" />
-      @if (loading()) {
-        <p>Chargement…</p>
-      }
       @if (error()) {
         <p class="error">{{ error() }}</p>
       }
       <div class="cards">
+        @if (loading() && tracks().length === 0) {
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        }
         @for (track of filteredTracks(); track track.id) {
           <article class="track-card">
             <h3>{{ track.title }}</h3>

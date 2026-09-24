@@ -1,2 +1,25 @@
 :host { display: block; }
-.username { color: white; font-weight: 600; opacity: 0.85; }
+
+header {
+  animation: fadeInUp 0.5s ease both;
+}
+
+.username {
+  color: white;
+  font-weight: 600;
+  opacity: 0.9;
+  padding: 0.3rem 0.7rem;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  animation: fadeInUp 0.4s ease both;
+}
+
+nav button {
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+nav button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}

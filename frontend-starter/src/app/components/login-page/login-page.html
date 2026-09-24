@@ -21,7 +21,13 @@
           <small class="field-error">Mot de passe requis</small>
         }
       </label>
-      <button type="submit" [disabled]="form.invalid">Se connecter</button>
+      <button type="submit" [disabled]="form.invalid || submitting()">
+        @if (submitting()) {
+          <span class="spinner"></span> Connexion…
+        } @else {
+          Se connecter
+        }
+      </button>
     </form>
     @if (error()) {
       <p class="error">{{ error() }}</p>

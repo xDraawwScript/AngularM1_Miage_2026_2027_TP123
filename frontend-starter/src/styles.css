@@ -6,9 +6,68 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; overflow-x: hidden; }
+
+/* Micro-interactions cohérentes sur toute l'appli : chaque thème garde ses propres
+   couleurs, seule la fluidité des changements d'état est mutualisée ici. */
+button, input, a, .track-card, .track-actions .play, .track-actions .delete {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+}
+button:active:not(:disabled) { transform: scale(0.97); }
+
+::selection { background: #1d755e; color: white; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.25); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.4); }
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: -0.15em;
+}
+
 header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 5vw; color: white; background: #123d32; }
 header small { opacity: 0.7; }
-nav { display: flex; gap: 1rem; }
+nav { display: flex; align-items: center; gap: 1rem; }
+nav a { position: relative; text-decoration: none; padding-bottom: 3px; }
+nav a::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 100%; bottom: 0;
+  height: 2px;
+  background: currentColor;
+  transition: right 0.25s ease;
+}
+nav a:hover::after, nav a.active-link::after { right: 0; }
 a { color: #1d755e; }
 header a { color: white; }
 main { max-width: 1050px; margin: 2rem auto; padding: 0 1rem; }

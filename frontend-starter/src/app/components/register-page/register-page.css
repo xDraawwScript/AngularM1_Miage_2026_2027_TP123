@@ -21,11 +21,22 @@
   justify-content: flex-end;
 }
 
+@keyframes shardEnter {
+  from { clip-path: polygon(0 100%, 0% 100%, 0% 0, 0 0); }
+  to { clip-path: polygon(0 100%, 60% 100%, 36% 0, 0 0); }
+}
+
+@keyframes shardEnterMobile {
+  from { clip-path: polygon(0 100%, 0% 100%, 0% 100%, 0 100%); }
+  to { clip-path: polygon(0 68%, 100% 52%, 100% 100%, 0 100%); }
+}
+
 .shard {
   position: absolute;
   inset: 0;
   background: #0a0a0a;
   clip-path: polygon(0 100%, 60% 100%, 36% 0, 0 0);
+  animation: shardEnter 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .panel {
@@ -34,6 +45,8 @@
   width: min(440px, 88vw);
   margin-right: 7vw;
   padding: 3rem 0;
+  animation: fadeInUp 0.6s ease both;
+  animation-delay: 0.25s;
 }
 
 .panel h1 {
@@ -96,10 +109,20 @@
   cursor: not-allowed;
 }
 
-.panel .error,
+.panel .error {
+  color: #ffd0c8;
+  font-size: 0.85rem;
+  font-weight: 700;
+  animation: shake 0.4s ease;
+}
+
 .panel .field-error {
   color: #ffd0c8;
   font-size: 0.82rem;
+}
+
+.panel .spinner {
+  margin-right: 0.4rem;
 }
 
 .panel a {
@@ -113,6 +136,7 @@
 
   .shard {
     clip-path: polygon(0 68%, 100% 52%, 100% 100%, 0 100%);
+    animation: shardEnterMobile 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
 
   .panel {

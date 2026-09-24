@@ -21,6 +21,7 @@ export class LoginPageComponent implements OnDestroy {
   }
 
   readonly error = signal('');
+  readonly submitting = signal(false);
   readonly form = new FormGroup({
     email: new FormControl('demo@example.com', {
       nonNullable: true,
@@ -33,6 +34,9 @@ export class LoginPageComponent implements OnDestroy {
   });
 
   submit(): void {
+    if (this.submitting()) return;
+    this.submitting.set(true);
+    this.error.set('');
     const values = this.form.getRawValue();
     this.auth.login(values.email, values.password).subscribe({
       next: () => {
@@ -42,6 +46,7 @@ export class LoginPageComponent implements OnDestroy {
       error: (error: { error?: { message?: string } }) => {
         console.error('[LoginPage] Échec de connexion', error);
         this.error.set(error.error?.message ?? 'Erreur de connexion');
+        this.submitting.set(false);
       },
     });
   }
