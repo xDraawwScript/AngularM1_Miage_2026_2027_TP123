@@ -149,6 +149,7 @@ export class TracksPageComponent implements OnDestroy {
     if (!this.file || this.uploadProgress() !== null) return;
 
     this.uploadProgress.set(0);
+    this.uploadError.set('');
     this.service.upload(this.file, this.title.value || this.file.name).subscribe({
       next: (event) => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
@@ -162,9 +163,10 @@ export class TracksPageComponent implements OnDestroy {
           this.load(1);
         }
       },
-      error: (error) => {
+      error: (error: { error?: { message?: string } }) => {
         console.error('[TracksPage] Envoi impossible', error);
         this.uploadProgress.set(null);
+        this.uploadError.set(error.error?.message ?? "Échec de l'envoi, réessayez.");
       },
     });
   }
