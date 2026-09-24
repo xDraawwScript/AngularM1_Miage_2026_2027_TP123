@@ -341,3 +341,27 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 ![Changement de page](preuves/td2-page-suivante.png)
 ![Lecture audio authentifiée](preuves/td2-play-audio.png)
 ```
+
+## Polish visuel complet (hors sujet strict du TP)
+
+**Objectif.** Élever le niveau de finition visuelle de toute l'appli (pas seulement les couleurs par thème déjà faites) : transitions fluides, micro-interactions, états de chargement soignés (skeletons), animations d'entrée, sans toucher à la logique métier.
+
+**Prompt principal.** « fais un frontend incroyable genre super beau et complet applique toi très stylé ».
+
+**Plan proposé par l'agent.**
+- Global (`styles.css`, `app.html`/`.css`) : transitions génériques sur boutons/inputs/liens, scrollbar personnalisée, animations CSS réutilisables (`fadeInUp`, `shake`, `shimmer`, `spin`), lien de nav actif souligné (`routerLinkActive`), petit spinner réutilisable (`.spinner`).
+- Login/Register : état de chargement sur le bouton de soumission (spinner + texte), animation de secousse (`shake`) sur les messages d'erreur, animation d'entrée de la page.
+- Profil : état de chargement initial (skeleton), état de sauvegarde avec confirmation visuelle temporaire (« ✓ Enregistré »), **ajout d'un signal `error` manquant jusque-là** (le chargement du profil ne montrait aucune erreur à l'utilisateur en cas d'échec, seulement `console.error`).
+- Tracks : cards avec effet de survol (légère élévation), apparition en cascade, skeleton de chargement initial, spinner sur les boutons Envoyer/Actualiser.
+
+**Piège technique rencontré et corrigé.** Le titre de la page login (`h1`, en écriture verticale via `transform: rotate(180deg)`) et le flyer (`transform: rotate(1.1deg)`) utilisaient déjà un `transform` statique pour leur mise en page. Une animation générique sur `transform` (comme `fadeInUp`, qui anime `translateY`) aurait écrasé cette rotation à la fin de l'animation. Corrigé en créant des `@keyframes` dédiés qui intègrent la rotation nécessaire dans leurs propres étapes (`ratmTitleEnter`, `flyerEnter`, `shardEnter`/`shardEnterMobile` pour le même problème sur la page register avec `clip-path`).
+
+**Vérifications réalisées.** Testé chaque page dans le navigateur (backend indisponible une partie du temps — nouveau problème de connexion MongoDB Atlas, probablement réseau local, sans lien avec ce travail) : les animations d'entrée, le spinner et le message d'erreur secoué s'affichent correctement même quand le serveur ne répond pas (bon test de robustesse, en fait). Vérifié spécifiquement que la rotation du titre login et l'inclinaison du flyer restent correctes après l'animation (pas de « redressement » parasite).
+
+**Erreurs ou propositions rejetées.** Le premier jet des animations d'entrée réutilisait partout le même `@keyframes fadeInUp` sans vérifier les propriétés déjà utilisées par chaque élément — corrigé avant de committer en repérant les conflits sur `transform`/`clip-path`.
+
+**Fichiers effectivement modifiés.** `styles.css`, `app.ts`/`.html`/`.css`, et les 4 paires `*-page.ts`/`.html`/`.css` — commit `3327343`.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi une animation CSS qui touche à `transform` peut silencieusement écraser un `transform` statique déjà nécessaire ailleurs sur le même élément (une seule valeur de `transform` peut s'appliquer à la fois ; il faut soit tout combiner dans le même keyframe, soit animer une autre propriété).
+- Pourquoi un skeleton loader (placeholder animé) donne une meilleure expérience qu'un simple texte « Chargement… » : il indique la forme du contenu à venir et rend l'attente moins désagréable.
