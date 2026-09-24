@@ -1,64 +1,122 @@
+/* Champ rouge plat plein écran, tranché par un éclat noir en biais : composition
+   graphique dure façon constructiviste, sans dégradé radial ni carte arrondie. */
+
 :host {
   display: block;
-  max-width: 520px;
-  margin: 3rem auto;
-  font-family: 'Oswald', sans-serif;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  margin-left: -50vw;
+  min-height: calc(100vh - 72px);
+  font-family: 'Archivo Narrow', sans-serif;
+  background: #b7101c;
+  overflow: hidden;
 }
 
-h1 {
-  font-family: 'Rye', serif;
-  font-size: 2.6rem;
-  color: #f5d9c8;
-  text-shadow: 2px 2px 0 #000;
-  margin: 0 0 1.4rem;
+.field {
+  position: relative;
+  min-height: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
-.card {
-  background: #130404;
-  border: 2px solid #000;
-  border-radius: 6px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
-}
-
-label {
-  color: #e8b974;
-  text-transform: uppercase;
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-}
-
-input {
-  background: #1f0707;
-  border: 1px solid #4a1010;
-  color: #f5e6d8;
-  border-radius: 6px;
-}
-
-input:focus {
-  outline: none;
-  border-color: #d81324;
-  box-shadow: 0 0 0 3px rgba(216, 19, 36, 0.3);
-}
-
-button {
+.shard {
+  position: absolute;
+  inset: 0;
   background: #0a0a0a;
-  color: #d81324;
-  border: 1px solid #d81324;
-  border-radius: 999px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  clip-path: polygon(0 100%, 60% 100%, 36% 0, 0 0);
 }
 
-button:hover:not(:disabled) {
-  background: #d81324;
+.panel {
+  position: relative;
+  z-index: 1;
+  width: min(440px, 88vw);
+  margin-right: 7vw;
+  padding: 3rem 0;
+}
+
+.panel h1 {
+  font-family: 'Rye', serif;
+  font-weight: 400;
+  font-size: clamp(2.1rem, 5vw, 3.2rem);
+  color: #fff4e8;
+  margin: 0 0 2rem;
+}
+
+.panel label {
+  display: block;
+  color: #ffd9c2;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  margin: 1.2rem 0 0.35rem;
+}
+
+.panel input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(255, 244, 232, 0.4);
+  border-radius: 0;
+  color: #fff4e8;
+  font-size: 1.05rem;
+  padding: 0.5rem 0;
+  font-family: 'Archivo Narrow', sans-serif;
+}
+
+.panel input:focus {
+  outline: none;
+  border-color: #ffd9c2;
+}
+
+.panel button {
+  margin-top: 2rem;
+  background: #fff4e8;
   color: #0a0a0a;
+  border: none;
+  border-radius: 0;
+  padding: 0.9rem 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
 }
 
-.error,
-.field-error {
-  color: #ffb3ab;
+.panel button:hover:not(:disabled) {
+  background: #0a0a0a;
+  color: #fff4e8;
+  box-shadow: inset 0 0 0 2px #fff4e8;
 }
 
-a {
-  color: #f5d9c8;
+.panel button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.panel .error,
+.panel .field-error {
+  color: #ffd0c8;
+  font-size: 0.82rem;
+}
+
+.panel a {
+  color: #ffd9c2;
+}
+
+@media (max-width: 760px) {
+  .field {
+    justify-content: center;
+  }
+
+  .shard {
+    clip-path: polygon(0 68%, 100% 52%, 100% 100%, 0 100%);
+  }
+
+  .panel {
+    margin-right: 0;
+    padding: 4rem 7vw 3rem;
+  }
 }
