@@ -5,7 +5,7 @@
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; }
+body { margin: 0; overflow-x: hidden; }
 header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 5vw; color: white; background: #123d32; }
 header small { opacity: 0.7; }
 nav { display: flex; gap: 1rem; }
@@ -29,57 +29,11 @@ audio { width: 100%; }
 .error { color: #a33; }
 .field-error { color: #a33; font-size: 0.85rem; margin-top: -0.2rem; }
 
-/* Thèmes rock : une ambiance par page (couleurs dominantes inspirées, sans reproduire
-   les pochettes), activée via une classe sur <body>. Le grain est un bruit CSS généré
-   (filtre SVG feTurbulence), pas une image importée. */
-body.theme-ratm {
-  background: linear-gradient(160deg, #d9d9d5, #aeaea8 55%, #8d8d87);
-  position: relative;
-}
-body.theme-ratm::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.12;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
+/* Thèmes rock : chaque page pousse son propre habillage plein écran (voir son .css),
+   la classe sur <body> ne sert plus ici qu'à accorder la bordure du header. */
 body.theme-ratm header { border-bottom: 6px solid #c8102e; }
-
-body.theme-qotsa {
-  background: radial-gradient(circle at 30% 20%, #d81324, #8c0e19 70%);
-}
 body.theme-qotsa header { border-bottom: 6px solid #0a0a0a; }
-
-body.theme-metallica {
-  background: #0a0a0a;
-  position: relative;
-}
-body.theme-metallica::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.08;
-  mix-blend-mode: screen;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
 body.theme-metallica header { border-bottom: 6px solid #9a9a9a; }
-
-body.theme-fleetwood {
-  background: linear-gradient(180deg, #f3e3c8, #e2b877 130%);
-  position: relative;
-}
-body.theme-fleetwood::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.1;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
 body.theme-fleetwood header { border-bottom: 6px solid #7a4a1f; }
 
 @media (max-width: 720px) {
