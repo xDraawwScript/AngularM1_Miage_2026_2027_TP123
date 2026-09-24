@@ -21,6 +21,9 @@
       @if (loading()) {
         <p>Chargement…</p>
       }
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
       <ol class="tracklist">
         @for (track of tracks(); track track.id; let i = $index) {
           <li class="track">

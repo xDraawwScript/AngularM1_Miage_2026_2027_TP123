@@ -15,6 +15,7 @@ export class TracksPageComponent implements OnDestroy {
   readonly page = signal(1);
   readonly pages = signal(1);
   readonly loading = signal(false);
+  readonly error = signal('');
   readonly audioUrl = signal('');
   readonly title = new FormControl('', { nonNullable: true });
   file?: File;
@@ -33,25 +34,32 @@ export class TracksPageComponent implements OnDestroy {
     console.debug('[TracksPage] Fichier sélectionné', this.file?.name);
   }
 
-  load(): void {
+  /**
+   * `targetPage` n'est écrit dans le signal `page` qu'après succès de la requête :
+   * en cas d'échec, l'étiquette de pagination affichée reste cohérente avec les
+   * pistes réellement affichées (pas de "Page 2" avec le contenu de la page 1).
+   */
+  load(targetPage = this.page()): void {
     this.loading.set(true);
-    this.service.list(this.page()).subscribe({
+    this.error.set('');
+    this.service.list(targetPage).subscribe({
       next: (response) => {
         console.debug('[TracksPage] Pistes chargées', response.items.length);
         this.tracks.set(response.items);
         this.pages.set(response.pages);
+        this.page.set(targetPage);
         this.loading.set(false);
       },
-      error: (error) => {
+      error: (error: { error?: { message?: string } }) => {
         console.error('[TracksPage] Chargement impossible', error);
+        this.error.set(error.error?.message ?? 'Impossible de charger la bibliothèque');
         this.loading.set(false);
       },
     });
   }
 
   go(page: number): void {
-    this.page.set(page);
-    this.load();
+    this.load(page);
   }
 
   upload(): void {
@@ -62,8 +70,7 @@ export class TracksPageComponent implements OnDestroy {
         console.debug('[TracksPage] Piste envoyée', track.id);
         this.title.setValue('');
         this.file = undefined;
-        this.page.set(1);
-        this.load();
+        this.load(1);
       },
       error: (error) => console.error('[TracksPage] Envoi impossible', error),
     });
