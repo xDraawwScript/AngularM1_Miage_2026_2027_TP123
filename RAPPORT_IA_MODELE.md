@@ -243,3 +243,24 @@ Travail effectué sur la branche `tp-2` (créée depuis `main`), pour isoler le 
 - Pourquoi `mat-paginator` a besoin de `length` (nombre total d'éléments) et non `pages` (nombre de pages) — c'est lui qui recalcule le nombre de pages en interne à partir de `length`/`pageSize`.
 - Pourquoi un composant tiers avec état interne (comme `mat-paginator`) ne se comporte pas comme un `@if`/`@for` purement déclaratif lié à un Signal : il peut avancer optimistiquement de son propre chef, ce qui oblige parfois à le resynchroniser manuellement via `@ViewChild` plutôt que par un simple binding `[pageIndex]`.
 - Pourquoi Angular ne réapplique pas un `@Input()` si sa valeur liée n'a pas changé d'un cycle de détection de changement à l'autre — la cause racine du bug de resynchronisation observé.
+
+## Mission 3 (TP2) — Analyse upload et lecture audio
+
+**Objectif.** Documenter (sans modifier de code) le mécanisme d'upload/lecture audio déjà en place : fichiers/méthodes précis de chaque étape, rôle de l'intercepteur JWT vis-à-vis d'une URL directe en `src`, contrôles backend déjà présents, et réponses aux 5 questions sur la mémoire/le buffering/le streaming.
+
+**Prompt principal.** Le texte complet de la Mission 3 du sujet, avec la consigne « Les questions réponds y dans un fichier html td 2 reponses ».
+
+**Plan proposé par l'agent.** Analyse du code déjà exploré en profondeur pendant les Missions 1 et 2 (pas de nouvelle exploration nécessaire), puis rédaction d'un document HTML autonome sur le même gabarit visuel que `schema-reponse-td1.html`, avec 4 sections : flux complet (tableau fichier/méthode par étape + schéma), intercepteur JWT vs attribut `src`, contrôles backend + conformité du `FormData` frontend, et les 5 questions mémoire/buffering/streaming.
+
+**Vérifications réalisées.** Relecture croisée de `tracks-page.ts`/`.html`, `track.service.ts`, `auth.interceptor.ts` et `backend/src/app.js` (Multer, `res.sendFile`) pour garantir que chaque affirmation du document correspond au code réel. Ouverture du fichier généré dans le navigateur pour confirmer le rendu.
+
+**Erreurs ou propositions rejetées.** Aucune : tâche de documentation pure, aucune divergence entre l'analyse et le code trouvé.
+
+**Fichiers effectivement modifiés.** Création de `schema-reponse-td2.html` — commit `f78a0ca` (branche `tp-2`). Aucun fichier de l'application modifié (conforme à la consigne du sujet : « ne modifiez pas le contrat HTTP », « ne réimplémentez pas ce qui existe déjà »).
+
+**Preuve de fonctionnement.** `schema-reponse-td2.html` s'ouvre en local et affiche les 4 sections complètes (voir capture du rendu pendant la session).
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Le trajet complet Blob → ObjectURL → lecteur `<audio>`, et pourquoi ce détour est nécessaire (l'intercepteur JWT n'agit que sur les requêtes `HttpClient`, jamais sur un attribut `src` chargé nativement par le navigateur).
+- Que le streaming existe déjà côté backend (`res.sendFile`) mais pas côté `HttpClient` (le `Blob` n'arrive qu'une fois le téléchargement terminé).
+- Deux manques identifiés pour une prochaine étape : pas de révocation de l'`ObjectURL` à la destruction du composant, et aucune validation de fichier (format/taille) côté frontend avant l'appel HTTP — et pourquoi cette dernière ne dispenserait de toute façon jamais la validation backend déjà en place.
