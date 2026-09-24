@@ -9,8 +9,19 @@
     <article class="side side-a">
       <h2>Importer</h2>
       <label>Titre<input [formControl]="title" /></label>
-      <label>Fichier audio<input type="file" accept="audio/*" (change)="choose($event)" /></label>
-      <button type="button" (click)="upload()" [disabled]="!file">Envoyer</button>
+      <label>Fichier audio<input #fileInput type="file" accept="audio/*" (change)="choose($event)" /></label>
+      @if (uploadError()) {
+        <p class="error">{{ uploadError() }}</p>
+      }
+      @if (uploadProgress(); as progress) {
+        <div class="upload-progress">
+          <progress [value]="progress" max="100"></progress>
+          <span>{{ progress }}%</span>
+        </div>
+      }
+      <button type="button" (click)="upload()" [disabled]="!file || uploadProgress() !== null">
+        {{ uploadProgress() !== null ? 'Envoi…' : 'Envoyer' }}
+      </button>
     </article>
 
     <article class="side side-b">
@@ -18,31 +29,51 @@
         <h2>Mes pistes</h2>
         <button type="button" (click)="load()">Actualiser</button>
       </div>
+      <input class="filter-input" [formControl]="filterTitle" placeholder="Filtrer par titre…" />
       @if (loading()) {
         <p>Chargement…</p>
       }
-      <ol class="tracklist">
-        @for (track of tracks(); track track.id; let i = $index) {
-          <li class="track">
-            <span class="num">{{ (i + 1) < 10 ? '0' + (i + 1) : i + 1 }}</span>
-            <span class="meta">
-              <b>{{ track.title }}</b>
-              <small>{{ track.originalName }} · {{ track.size }} Ko</small>
-            </span>
-            <button type="button" class="play" (click)="play(track)" [attr.aria-label]="'Lire ' + track.title">▶</button>
-            <button type="button" class="delete" (click)="remove(track)" [attr.aria-label]="'Supprimer ' + track.title">✕</button>
-          </li>
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+      <div class="cards">
+        @for (track of filteredTracks(); track track.id) {
+          <article class="track-card">
+            <h3>{{ track.title }}</h3>
+            <p class="original">{{ track.originalName }}</p>
+            <dl class="specs">
+              <div><dt>Format</dt><dd>{{ formatType(track.mimeType) }}</dd></div>
+              <div><dt>Taille</dt><dd>{{ formatSize(track.size) }}</dd></div>
+              <div><dt>Ajouté le</dt><dd>{{ formatDate(track.createdAt) }}</dd></div>
+            </dl>
+            <div class="track-actions">
+              @if (currentTrackId() === track.id && isPlaying()) {
+                <button type="button" class="play" (click)="play(track)" [attr.aria-label]="'Mettre en pause ' + track.title">⏸ Pause</button>
+              } @else {
+                <button type="button" class="play" (click)="play(track)" [attr.aria-label]="'Lire ' + track.title">▶ Lire</button>
+              }
+              <button type="button" class="delete" (click)="remove(track)" [attr.aria-label]="'Supprimer ' + track.title">✕</button>
+            </div>
+          </article>
         } @empty {
-          <p>Aucune piste.</p>
+          @if (tracks().length > 0) {
+            <p>Aucun résultat pour ce filtre.</p>
+          } @else {
+            <p>Aucune piste.</p>
+          }
         }
-      </ol>
-      <div class="pager">
-        <button type="button" (click)="go(page() - 1)" [disabled]="page() === 1">Préc.</button>
-        <span>Page {{ page() }} / {{ pages() }}</span>
-        <button type="button" (click)="go(page() + 1)" [disabled]="page() === pages()">Suiv.</button>
       </div>
+      <mat-paginator
+        [length]="total()"
+        [pageSize]="5"
+        [pageIndex]="page() - 1"
+        [hidePageSize]="true"
+        [showFirstLastButtons]="true"
+        (page)="onPageEvent($event)"
+        aria-label="Choisir une page de pistes"
+      ></mat-paginator>
       @if (audioUrl()) {
-        <audio [src]="audioUrl()" controls autoplay></audio>
+        <audio #audioPlayer [src]="audioUrl()" controls autoplay (play)="onAudioPlay()" (pause)="onAudioPause()" (ended)="onAudioPause()"></audio>
       }
     </article>
   </div>

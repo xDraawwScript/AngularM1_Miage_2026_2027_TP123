@@ -139,3 +139,196 @@ Le Checkpoint du sujet demande des captures Network (méthode, URL, corps JSON, 
 ![Connexion refusée](preuves/mission1-login-401.png)
 ![Lecture/MAJ /api/users/me](preuves/mission1-users-me.png)
 ```
+
+# Rapport d'usage de l'IA - TP2
+
+Travail effectué sur la branche `tp-2` (créée depuis `main`), pour isoler le TP2 du TP1 déjà mergé/poussé.
+
+## Mission 0 (TP2) — Vérification des prérequis
+
+**Objectif.** Le sujet TP2 exige avant toute chose : « Le TP1 doit être fonctionnel. Le backend doit être lancé, le frontend doit utiliser la bonne cible dans `proxy.conf.json`, et le compte de test doit pouvoir se connecter. » Équivalent de la Mission 0 du TP1 : une vérification, pas une mission de code.
+
+**Prompt principal.** « On va faire ça mission par mission on commence par le 0 ».
+
+**Vérifications réalisées.**
+- `GET /api/health` → `200 {"status":"ok"}`.
+- `proxy.conf.json` : `/api` → `http://localhost:3000` (correct).
+- Connexion réelle via l'UI (`demo@example.com` / `Demo1234!`) après avoir vidé `localStorage` → redirection sur `/tracks`, token présent, bibliothèque affichée.
+- Fichiers de test présents (`song1.mp3`, `song2.mp3`).
+- État des lieux du code existant pertinent pour la Mission 2 : `TrackService.list(page, limit)` transmettait déjà les paramètres au serveur (pas de pagination locale), les Signals `tracks`/`page`/`pages`/`loading` existaient déjà, `@for`/`@empty`/`@if` et les boutons Préc./Suiv. désactivés aux bornes étaient déjà en place.
+
+**Erreurs ou propositions rejetées.** Aucune, étape de lecture seule.
+
+**Fichiers effectivement modifiés.** Aucun (vérification uniquement).
+
+**Preuve de fonctionnement.** `curl http://localhost:3000/api/health` → `200` ; connexion UI aboutissant sur `/tracks` avec token en `localStorage`.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.** Que la Mission 2 du sujet ne part pas de zéro : la pagination serveur et les Signals de base existaient déjà dans le starter, seul le signal d'erreur manquait (voir Mission 2 ci-dessous).
+
+## Mission 2 — Bibliothèque paginée
+
+**Objectif.** Représenter `tracks`, `page`, `pages`, `loading` **et l'erreur éventuelle** avec des Signals, avec une vraie requête HTTP serveur à chaque changement de page (aucune pagination locale). Parties avancées (Angular Material Paginator, plugin Mongoose `aggregate-paginate-v2`) explicitement écartées par l'étudiant car facultatives.
+
+**Prompt principal.** « on passe à la deux, ne fais pas ce qui est optionnel, redige bien tout dans le fichier demandé et débats avec moi pour faire des choix d'architecture, tu mets les choix et les décisions dans le fichier, on fait ce tp2 dans une branche tp-2 ».
+
+**Débat et décisions d'architecture (avant implémentation).**
+
+1. **Comportement du signal `page` en cas d'échec de chargement.** Deux options proposées :
+   - **A — Rollback** : `page` n'est mis à jour qu'après le succès de la requête HTTP ; en cas d'échec, l'étiquette de pagination affichée reste cohérente avec les pistes réellement montrées.
+   - **B — Optimiste** : `page` est mis à jour immédiatement au clic, avant même la réponse du serveur ; plus simple mais peut afficher une étiquette de page incohérente avec le contenu si la requête échoue.
+
+   → **Décision retenue : A (rollback).** Choix de l'étudiant, validé.
+
+2. **Message d'erreur affiché.** Tenter `error.error?.message` (message renvoyé par le backend s'il existe), sinon un message générique fixe (« Impossible de charger la bibliothèque »), affiché avec la classe `.error` déjà utilisée sur les pages login/register — cohérence de style avec l'existant plutôt qu'un nouveau composant d'erreur.
+
+   → **Décision retenue : validée telle quelle** par l'étudiant.
+
+**Plan proposé par l'agent (implémentation).**
+- `tracks-page.ts` : ajout du signal `readonly error = signal('')` ; `load()` prend désormais un paramètre optionnel `targetPage` (par défaut la page courante), le remet à zéro (`error.set('')`) à chaque tentative, et ne fait `this.page.set(targetPage)` que dans le callback `next` (succès) — jamais dans `error`. `go(page)` appelle directement `load(page)` au lieu de faire `page.set(page)` puis `load()`. `upload()` appelle `load(1)` après un envoi réussi, au lieu de faire `page.set(1)` puis `load()` séparément (même logique unifiée).
+- `tracks-page.html` : ajout d'un `@if (error()) { <p class="error">{{ error() }}</p> }` juste après le `@if (loading())`.
+
+**Vérifications réalisées.**
+- Fonctionnement normal inchangé : la bibliothèque se charge, « Page 1 / 1 » correct.
+- Simulation d'échec : arrêt volontaire du backend (`Stop-Process` sur le process Node du serveur), clic sur « Actualiser » → message « Impossible de charger la bibliothèque » affiché, la piste déjà présente reste visible (pas de vidage de liste trompeur), l'étiquette de page ne change pas.
+- Redémarrage du backend, nouveau clic sur « Actualiser » → le message d'erreur disparaît, la liste se recharge normalement (confirme que `error` est bien remis à zéro à chaque tentative).
+
+**Erreurs ou propositions rejetées.** Aucune : les deux options ont été présentées à l'étudiant avant tout code, l'option A a été choisie directement, pas d'implémentation à défaire.
+
+**Fichiers effectivement modifiés.** `tracks-page.ts`, `tracks-page.html` — commit `333b553` (branche `tp-2`).
+
+**Preuve de fonctionnement.** Voir « Vérifications réalisées » ci-dessus (test réel d'échec/succès en conditions réelles, pas seulement en théorie).
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi committer la valeur de `page` seulement en cas de succès évite une désynchronisation entre l'étiquette de pagination affichée et les données réellement montrées à l'écran.
+- Pourquoi il faut remettre `error` à `''` au début de chaque tentative de chargement (`load()`), et pas seulement le définir en cas d'échec : sinon un message d'erreur resterait affiché indéfiniment après une tentative suivante réussie.
+- Pourquoi `error.error?.message` peut être `undefined` pour certaines pannes (ex. erreur serveur générique sans corps JSON exploitable, comme le crash MongoDB rencontré en TP1) — d'où l'importance du message de repli fixe.
+
+## Mission 2 (AVANCÉ) — Angular Material Paginator
+
+**Objectif.** Remplacer les boutons Préc./Suiv. faits main par le composant `<mat-paginator>` d'Angular Material sur la page Tracks (partie explicitement marquée AVANCÉ dans le sujet).
+
+**Prompt principal.** « AVANCÉ — Angular Material [...] On fait ça ».
+
+**Débat et décisions d'architecture (avant implémentation).**
+1. **Style visuel du paginator** : garder le look Material par défaut (bleu/indigo, Roboto) plutôt que de le retheme pour matcher l'habillage « pochette vinyle » (crème, Cormorant Garamond) déjà en place sur la page Tracks. → Décision de l'étudiant : **garder le défaut**, zéro travail de retheming CSS.
+2. **Animations Material** (ripple au clic, transitions) : activées via `provideAnimationsAsync()` plutôt que désactivées (`provideNoopAnimations()`). → Décision de l'étudiant : **activées**.
+
+**Plan proposé par l'agent (implémentation).**
+- `npx ng generate @angular/material:ng-add --theme=azure-blue --defaults` pour installer `@angular/material`/`@angular/cdk` et générer le théming (le flag `--theme=indigo-pink`, nom de thème Material 2 « legacy », a d'abord fait planter le schematic — Angular Material 22 est passé au théming Material 3, qui utilise d'autres noms de thème comme `azure-blue`).
+- Ajout manuel de `@angular/animations` (peer dependency non installée automatiquement) et alignement de tous les paquets `@angular/*` sur la même version exacte (`22.2.0`) pour éviter des conflits de peer dependencies avec npm.
+- Édition du fichier généré `src/material-theme.scss` pour retirer le reset global `body { background-color / color / font: ... }` qu'impose le schematic par défaut : avec 4 pages ayant chacune leur typographie bespoke (Bebas Neue, Rye, Unica One, Cormorant Garamond...), un reset global aurait pu entrer en conflit — conservé uniquement le théming des composants Material eux-mêmes.
+- `tracks-page.ts` : import de `MatPaginatorModule`, ajout du signal `total` (le paginator a besoin du nombre total d'éléments, pas du nombre de pages), méthode `onPageEvent(event: PageEvent)` convertissant l'index 0-based du paginator vers la page 1-based de l'appli.
+- `tracks-page.html` : remplacement du `<div class="pager">` par `<mat-paginator [length] [pageSize]="5" [pageIndex] [hidePageSize]="true" [showFirstLastButtons]="true" (page)="onPageEvent($event)">`.
+- Ajout de `src/index.html` : police d'icônes Material Symbols (sinon les flèches de navigation s'affichent en texte brut, ex. `chevron_left`).
+- Ajout de `mat-paginator-intl-fr.ts` : `mat-paginator` n'a aucune traduction française par défaut (affichait « 1 – 1 of 1 »), un provider `MatPaginatorIntl` francisé a été ajouté sur le composant.
+
+**Bug découvert et corrigé en testant.** `mat-paginator` gère un état interne (`pageIndex`) qui avance **visuellement dès le clic**, avant même la réponse du serveur — contrairement aux anciens boutons faits main qui lisaient directement le signal `page`. Comme la Mission 2 a fait le choix « rollback » (ne committer `page` qu'en cas de succès), si une requête échoue et que la valeur de `page()-1` ne change donc pas, Angular ne repousse pas cette valeur inchangée au paginator, qui reste alors visuellement décalé (constaté en test : affichait « 1 – 5 sur 6 » alors que les données réellement affichées étaient toujours celles de la page 2). Corrigé en ajoutant un `@ViewChild(MatPaginator)` et en forçant `this.paginator.pageIndex = this.page() - 1` dans le callback d'erreur, pour resynchroniser l'état interne du composant indépendamment de la détection de changement d'Angular.
+
+**Vérifications réalisées.**
+- Build (`npm start`) sans erreur après résolution des conflits de versions.
+- Ajout temporaire de 5 pistes de test via `curl` (upload non scriptable facilement dans le navigateur automatisé) pour obtenir 2 pages ; navigation avant/arrière avec vraies requêtes `GET /api/tracks?page=2&limit=5` visibles en Network.
+- Test du bug ci-dessus (backend coupé pendant la navigation) avant et après le correctif `@ViewChild`.
+- Nettoyage : les 5 pistes de test supprimées via `DELETE /api/tracks/:id` après vérification, retour à l'état initial (1 piste).
+- Non-régression vérifiée sur les pages login/register/profile (typographies bespoke intactes malgré l'ajout du théming Material global).
+
+**Erreurs ou propositions rejetées.**
+- `--theme=indigo-pink` (nom Material 2) : rejeté par le schematic lui-même (`Cannot read properties of undefined (reading 'primary')`), remplacé par `--theme=azure-blue` (nom Material 3 valide dans cette version).
+- Laisser le reset de typographie global généré par le schematic : rejeté et retiré manuellement, pour ne pas risquer d'écraser les 4 thèmes de page déjà en place.
+
+**Fichiers effectivement modifiés.** `package.json`, `angular.json`, `src/index.html`, `src/main.ts`, `src/material-theme.scss` (nouveau), `tracks-page.ts`, `tracks-page.html`, `mat-paginator-intl-fr.ts` (nouveau) — commit `03c9195` (branche `tp-2`).
+
+**Preuve de fonctionnement.** Voir « Vérifications réalisées » : navigation réelle entre 2 pages avec requêtes serveur observées, bug de désynchronisation du paginator reproduit puis corrigé et re-testé.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi `mat-paginator` a besoin de `length` (nombre total d'éléments) et non `pages` (nombre de pages) — c'est lui qui recalcule le nombre de pages en interne à partir de `length`/`pageSize`.
+- Pourquoi un composant tiers avec état interne (comme `mat-paginator`) ne se comporte pas comme un `@if`/`@for` purement déclaratif lié à un Signal : il peut avancer optimistiquement de son propre chef, ce qui oblige parfois à le resynchroniser manuellement via `@ViewChild` plutôt que par un simple binding `[pageIndex]`.
+- Pourquoi Angular ne réapplique pas un `@Input()` si sa valeur liée n'a pas changé d'un cycle de détection de changement à l'autre — la cause racine du bug de resynchronisation observé.
+
+## Mission 3 (TP2) — Analyse upload et lecture audio
+
+**Objectif.** Documenter (sans modifier de code) le mécanisme d'upload/lecture audio déjà en place : fichiers/méthodes précis de chaque étape, rôle de l'intercepteur JWT vis-à-vis d'une URL directe en `src`, contrôles backend déjà présents, et réponses aux 5 questions sur la mémoire/le buffering/le streaming.
+
+**Prompt principal.** Le texte complet de la Mission 3 du sujet, avec la consigne « Les questions réponds y dans un fichier html td 2 reponses ».
+
+**Plan proposé par l'agent.** Analyse du code déjà exploré en profondeur pendant les Missions 1 et 2 (pas de nouvelle exploration nécessaire), puis rédaction d'un document HTML autonome sur le même gabarit visuel que `schema-reponse-td1.html`, avec 4 sections : flux complet (tableau fichier/méthode par étape + schéma), intercepteur JWT vs attribut `src`, contrôles backend + conformité du `FormData` frontend, et les 5 questions mémoire/buffering/streaming.
+
+**Vérifications réalisées.** Relecture croisée de `tracks-page.ts`/`.html`, `track.service.ts`, `auth.interceptor.ts` et `backend/src/app.js` (Multer, `res.sendFile`) pour garantir que chaque affirmation du document correspond au code réel. Ouverture du fichier généré dans le navigateur pour confirmer le rendu.
+
+**Erreurs ou propositions rejetées.** Aucune : tâche de documentation pure, aucune divergence entre l'analyse et le code trouvé.
+
+**Fichiers effectivement modifiés.** Création de `schema-reponse-td2.html` — commit `f78a0ca` (branche `tp-2`). Aucun fichier de l'application modifié (conforme à la consigne du sujet : « ne modifiez pas le contrat HTTP », « ne réimplémentez pas ce qui existe déjà »).
+
+**Preuve de fonctionnement.** `schema-reponse-td2.html` s'ouvre en local et affiche les 4 sections complètes (voir capture du rendu pendant la session).
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Le trajet complet Blob → ObjectURL → lecteur `<audio>`, et pourquoi ce détour est nécessaire (l'intercepteur JWT n'agit que sur les requêtes `HttpClient`, jamais sur un attribut `src` chargé nativement par le navigateur).
+- Que le streaming existe déjà côté backend (`res.sendFile`) mais pas côté `HttpClient` (le `Blob` n'arrive qu'une fois le téléchargement terminé).
+- Deux manques identifiés pour une prochaine étape : pas de révocation de l'`ObjectURL` à la destruction du composant, et aucune validation de fichier (format/taille) côté frontend avant l'appel HTTP — et pourquoi cette dernière ne dispenserait de toute façon jamais la validation backend déjà en place.
+
+## Mission 3 (TP2) — Compléments manquants + améliorations facultatives
+
+**Objectif.** Corriger les deux manques identifiés dans l'analyse précédente (révocation finale de l'`ObjectURL`, validations frontend avant l'upload) et implémenter une partie des améliorations facultatives du sujet : barre de progression, formatage lisible taille/date, filtre par titre (la confirmation de suppression et le rafraîchissement après suppression étaient déjà faits depuis la Mission 1 bonus).
+
+**Prompt principal.** « on fait les compléments manquants (révocation + validations) et ça [améliorations facultatives : barre de progression, suppression+confirmation, rafraîchissement après suppression, formatage taille/date, filtre par titre] ».
+
+**Plan proposé par l'agent (implémentation, sans débat d'architecture cette fois — corrections et ajouts factuels, pas de choix ouverts).**
+- `tracks-page.ts` : `ngOnDestroy` révoque désormais `audioUrl()` s'il est encore défini.
+- Constantes `ALLOWED_AUDIO_TYPES`/`MAX_FILE_SIZE` dupliquées côté frontend (miroir exact des contrôles déjà en place dans `backend/src/app.js`), vérifiées dans `choose()` dès la sélection du fichier (signal `uploadError`), avec réinitialisation de l'`<input type="file">` si le fichier est rejeté.
+- `track.service.ts` : `upload()` passe désormais par `{ reportProgress: true, observe: 'events' }` pour exposer la progression ; `tracks-page.ts` traduit les événements `HttpEventType.UploadProgress`/`Response` en signal `uploadProgress` (pourcentage), affiché via un `<progress>` ; le bouton « Envoyer » est désactivé pendant l'envoi (empêche une double soumission, effet de bord nécessaire pour qu'une barre de progression ait un sens).
+- `formatSize()`/`formatDate()` : corrige un bug déjà présent (la taille en octets bruts était étiquetée « Ko » sans conversion) et ajoute la date d'ajout, absente jusque-là de l'affichage.
+- `filterTitle` (FormControl) + `toSignal(valueChanges)` + `computed()` : filtre client sur la page actuellement chargée (pas de nouvelle route serveur, conforme à « ne modifiez pas le backend »).
+- Bug annexe corrigé en testant : après un envoi réussi, l'`<input type="file">` gardait visuellement l'ancien nom de fichier bien que l'état interne (`this.file`) soit remis à `undefined` — ajout d'un `@ViewChild('fileInput')` pour vider aussi la valeur native de l'input.
+
+**Vérifications réalisées.**
+- Filtre : tapé « punch » → une seule piste sur cinq affichée, effacé → retour à la liste complète.
+- Validation de format : fichier `.txt` (`text/plain`) injecté via un faux `File`/`DataTransfer` (upload non scriptable dans le navigateur automatisé) → message « Format non accepté... » affiché, bouton Envoyer resté désactivé.
+- Validation de taille : faux fichier de 26 Mo → message « Fichier trop volumineux (25 Mo maximum). ».
+- Upload réel de bout en bout (deux faux fichiers audio valides, ~300–500 Ko) : succès, apparition en tête de liste, retour à la page 1, champ fichier et titre vidés (y compris l'affichage natif de l'input), pistes de test supprimées après vérification via `DELETE /api/tracks/:id`.
+- Formatage : tailles réelles affichées correctement (ex. « 584.7 Ko » au lieu de « 598969 Ko »), dates lisibles (« 24 sept. 2026 »).
+
+**Erreurs ou propositions rejetées.** Aucune proposition alternative débattue cette fois : ce tour corrigeait des manques déjà identifiés et implémentait des demandes optionnelles explicites, sans ambiguïté de choix.
+
+**Fichiers effectivement modifiés.** `track.service.ts`, `tracks-page.ts`, `tracks-page.html`, `tracks-page.css` — commit `151efac` (branche `tp-2`).
+
+**Preuve de fonctionnement.** Voir « Vérifications réalisées » — tests réels effectués dans le navigateur (validations, upload complet, filtre), pas seulement une relecture du code.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi dupliquer les règles de validation (format, taille) côté frontend n'est pas une redondance inutile : c'est le seul moyen d'offrir un retour instantané, tout en sachant que le backend réappliquera exactement les mêmes règles de son côté, pour de vrai cette fois (sécurité).
+- Pourquoi `HttpClient` a besoin de `{ reportProgress: true, observe: 'events' }` pour exposer une progression, alors que l'appel « simple » ne renvoie que la réponse finale.
+- Pourquoi vider un `<input type="file">` demande de manipuler directement l'élément du DOM (`nativeElement.value = ''`) : contrairement à un `<input text>` piloté par un `FormControl`, l'attribut `value` d'un input file ne peut pas être réécrit par data-binding (restriction de sécurité des navigateurs), d'où le besoin d'un `@ViewChild`.
+
+## Mission 3 (TP2) — Vérification Checkpoint, cards, bouton lecture/pause
+
+**Objectif.** Avant de merger `tp-2` dans `main` : vérifier chaque point du Checkpoint Network et des Livrables TP2 du sujet, corriger les manques trouvés, et ajouter le changement d'état du bouton de lecture (play ↔ pause) demandé par l'étudiant.
+
+**Prompt principal.** « Si tout est bon merge dans main » (après avoir reçu la liste Checkpoint/Livrables), puis en cours de vérification : « fais aussi quand on clique sur un son le bouton change [...] il passe en mode play ».
+
+**Vérifications réalisées avant merge (Checkpoint Network).**
+- Changement de page → nouveau `page` dans l'URL : déjà vérifié en Mission 2 AVANCÉ.
+- Upload multipart avec `audio`+`title` : déjà vérifié en Mission 1/3.
+- Réponse de lecture = flux audio : `curl -D -` sur `GET /api/tracks/:id/audio` → `Content-Type: audio/mpeg`, `Accept-Ranges: bytes` confirmés.
+- Piste lisible uniquement par son propriétaire : testé avec un second compte fraîchement créé (`intrus-test@example.com`) → `GET /api/tracks/:id/audio` avec le token de cet autre utilisateur sur une piste de `demo` → `404` (et `401` sans aucun token).
+- Erreur affichée pour un fichier invalide : **manque trouvé** — l'erreur serveur pendant l'upload n'était loguée qu'en console, jamais affichée à l'utilisateur. Corrigé (réutilisation du signal `uploadError`).
+
+**Vérification des Livrables TP2 — manque trouvé et débattu avec l'étudiant.** Le sujet demande explicitement des « cards » affichant titre, nom original, **format**, taille, date d'ajout et une action de lecture. L'implémentation ne présentait qu'une liste numérotée sans le champ format. Question posée à l'étudiant (corriger avant de merger, ou merger tel quel et corriger après) → réponse : corriger avant.
+
+**Plan proposé par l'agent (implémentation).**
+- Ajout de `formatType(mimeType)` (mimetype → libellé lisible : MP3/WAV/OGG/M4A).
+- Remplacement de la liste `<ol>/<li>` par une grille de cards (`<article class="track-card">`), une par piste, affichant titre, nom original, et une `<dl>` Format/Taille/Ajouté le, plus les actions Lire/Supprimer.
+- Bouton lecture dynamique : ajout des signals `currentTrackId`/`isPlaying`, d'un `@ViewChild('audioPlayer')`, et des écouteurs `(play)`/`(pause)`/`(ended)` sur l'élément `<audio>`. Cliquer sur une piste différente télécharge son `Blob` comme avant ; recliquer sur la piste déjà chargée bascule juste `play()`/`pause()` sur l'élément existant, sans reformuler de requête.
+
+**Vérifications réalisées (nouvelles).**
+- Cards : format/taille/date bien affichés pour chaque piste, mise en page en grille responsive.
+- Lecture/pause : script de test cliquant « Lire » puis vérifiant `audio.paused === false` et un seul bouton sur « ⏸ Pause » parmi les 5 (les autres restent « ▶ Lire ») ; puis clic sur ce même bouton → `audio.paused === true` et libellé revenu à « ▶ Lire ».
+- Changement de piste en cours de lecture : lancé « punch-a-rock », puis « perdre » → le bouton de « punch-a-rock » repasse bien à « ▶ Lire » (un seul `audioUrl`/lecteur actif à la fois, cohérent avec l'analyse Mission 3 sur la mémoire).
+- Fin de piste naturelle (`ended`) : bouton revenu automatiquement à « ▶ Lire » sans action de l'utilisateur.
+
+**Erreurs ou propositions rejetées.** Aucune : les manques trouvés étaient des oublis factuels (pas de choix à trancher), corrigés directement.
+
+**Fichiers effectivement modifiés.** `tracks-page.ts` (erreur upload, cards, play/pause — 2 commits), `tracks-page.html`, `tracks-page.css` — commits `2011f33` et `a7ad645` (branche `tp-2`).
+
+**Preuve de fonctionnement.** Voir « Vérifications réalisées » ci-dessus : tous les tests ont été faits en conditions réelles (vraies requêtes HTTP, vrai élément `<audio>`, pas seulement une relecture de code).
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi il ne faut retélécharger le `Blob` que pour une piste différente, jamais pour rejouer/mettre en pause la même piste déjà chargée (économie de requête réseau, cohérent avec la Mission 3 sur le streaming/mémoire).
+- Pourquoi l'état « en cours de lecture » doit être piloté par les événements natifs de l'élément `<audio>` (`play`/`pause`/`ended`) plutôt que par un simple booléen mis à jour au clic : l'utilisateur peut aussi mettre en pause via les contrôles natifs du lecteur, ou la piste peut se terminer toute seule — dans les deux cas le bouton doit rester synchronisé avec l'état réel du lecteur.
