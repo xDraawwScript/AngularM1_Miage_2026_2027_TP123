@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TP2 — Mission 3 : analyse upload et lecture audio</title>
+<style>
+  :root {
+    --bg: #f7f7f9;
+    --panel: #ffffff;
+    --text: #1c1c1e;
+    --muted: #5b5b63;
+    --border: #e2e2e7;
+    --blue: #2563eb;
+    --blue-bg: #eaf1ff;
+    --green: #16794f;
+    --green-bg: #e8f6ee;
+    --orange: #b3590a;
+    --orange-bg: #fdefe1;
+    --gray: #4b5563;
+    --gray-bg: #eef0f3;
+    --red: #b3261e;
+    --red-bg: #fdecea;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 16px 64px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 1.7rem; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); margin-top: 0; margin-bottom: 32px; }
+  h2 {
+    font-size: 1.25rem;
+    margin-top: 48px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+  h3 { font-size: 1.05rem; margin-top: 28px; }
+  p { margin: 10px 0; }
+  ul, ol { margin: 8px 0; padding-left: 22px; }
+  li { margin: 6px 0; }
+  code {
+    background: var(--gray-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+    font-family: "SF Mono", Consolas, monospace;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.93rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th { color: var(--muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.02em; }
+  td.file { font-family: "SF Mono", Consolas, monospace; font-size: 0.87rem; white-space: nowrap; color: var(--blue); }
+
+  .flow { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 24px 0; }
+  .step {
+    width: 100%;
+    max-width: 640px;
+    border-radius: 10px;
+    padding: 12px 18px;
+    border: 1.5px solid transparent;
+    font-size: 0.93rem;
+  }
+  .step .label { font-weight: 700; font-family: "SF Mono", Consolas, monospace; font-size: 0.85rem; }
+  .step .desc { color: var(--muted); margin-top: 3px; }
+  .step.frontend { background: var(--blue-bg); border-color: #c3d9ff; }
+  .step.frontend .label { color: var(--blue); }
+  .step.network { background: var(--gray-bg); border-color: #d7d9de; }
+  .step.network .label { color: var(--gray); }
+  .step.backend { background: var(--green-bg); border-color: #bfe6cf; }
+  .step.backend .label { color: var(--green); }
+  .arrow { color: #9c9ca6; font-size: 1.3rem; line-height: 1; margin: 2px 0; }
+
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 14px 0 4px; font-size: 0.85rem; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .dot.frontend { background: var(--blue); }
+  .dot.network { background: var(--gray); }
+  .dot.backend { background: var(--green); }
+
+  .callout {
+    background: #fff8e6;
+    border: 1px solid #f2dfa0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 0.93rem;
+  }
+  .callout strong { color: #8a6415; }
+
+  .gap {
+    background: var(--red-bg);
+    border: 1px solid #f3b6b0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 0.93rem;
+  }
+  .gap strong { color: var(--red); }
+
+  .qa {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 14px 0;
+  }
+  .qa .q { font-weight: 700; margin-bottom: 6px; }
+  .qa .q::before { content: "Q — "; color: var(--blue); }
+  .qa .a { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>TP2 — Mission 3</h1>
+  <p class="subtitle">Analyse du mécanisme d'upload et de lecture audio déjà en place (aucune ligne de code modifiée pour ce document)</p>
+
+  <h2>1. Flux complet — fichiers et méthodes précis</h2>
+  <div class="card">
+    <table>
+      <tr><th>Étape</th><th>Fichier</th><th>Méthode / élément</th></tr>
+      <tr><td>Choix du fichier</td><td class="file">tracks-page.html</td><td><code>&lt;input type="file"&gt;</code> avec <code>(change)="choose($event)"</code></td></tr>
+      <tr><td>Stockage du fichier choisi</td><td class="file">tracks-page.ts</td><td><code>choose(event)</code> → <code>this.file = event.target.files[0]</code></td></tr>
+      <tr><td>Construction du <code>FormData</code></td><td class="file">track.service.ts</td><td><code>upload(file, title)</code> → <code>body.append('audio', file)</code>, <code>body.append('title', title)</code></td></tr>
+      <tr><td>Appel HTTP d'upload</td><td class="file">track.service.ts</td><td>même méthode → <code>http.post('/api/tracks', body)</code></td></tr>
+      <tr><td>Récupération du <code>Blob</code> (lecture)</td><td class="file">track.service.ts</td><td><code>audio(id)</code> → <code>http.get(..., { responseType: 'blob' })</code></td></tr>
+      <tr><td>Création de l'<code>ObjectURL</code></td><td class="file">tracks-page.ts</td><td><code>play(track)</code> → <code>URL.createObjectURL(blob)</code></td></tr>
+      <tr><td>Affectation au lecteur</td><td class="file">tracks-page.html</td><td><code>&lt;audio [src]="audioUrl()" controls autoplay&gt;</code></td></tr>
+      <tr><td>Révocation de l'ancienne URL</td><td class="file">tracks-page.ts</td><td><code>play()</code> : <code>URL.revokeObjectURL(previousUrl)</code> avant d'en créer une nouvelle</td></tr>
+    </table>
+
+    <div class="gap">
+      <strong>Manque identifié :</strong> la révocation ne se fait qu'au moment de lancer une <em>nouvelle</em> lecture. Il n'y a pas de révocation de l'<code>ObjectURL</code> en cours au moment où le composant est détruit (pas de logique dédiée dans <code>ngOnDestroy</code>). Si l'utilisateur quitte la page <code>/tracks</code> en pleine écoute, l'URL — et le <code>Blob</code> qu'elle référence — reste en mémoire. À corriger dans une prochaine étape (hors scope de ce document, qui reste une analyse).
+    </div>
+
+    <h3>Schéma du flux</h3>
+    <div class="legend">
+      <span><i class="dot frontend"></i> Frontend Angular</span>
+      <span><i class="dot network"></i> Réseau / transport</span>
+      <span><i class="dot backend"></i> Backend Express</span>
+    </div>
+    <div class="flow">
+      <div class="step frontend">
+        <div class="label">Upload — composant → service → HttpClient → API</div>
+        <div class="desc"><code>choose()</code> stocke le fichier → <code>upload()</code> construit le <code>FormData</code> → <code>POST /api/tracks</code></div>
+      </div>
+      <div class="arrow">↓</div>
+      <div class="step backend">
+        <div class="label">Backend enregistre le fichier + les métadonnées</div>
+        <div class="desc">Multer écrit le fichier sur disque, MongoDB stocke titre/taille/type</div>
+      </div>
+      <div class="arrow">↓</div>
+      <div class="step network">
+        <div class="label">Lecture — API → Blob</div>
+        <div class="desc"><code>GET /api/tracks/:id/audio</code> (avec JWT) → réponse binaire assemblée en <code>Blob</code> par <code>HttpClient</code></div>
+      </div>
+      <div class="arrow">↓</div>
+      <div class="step frontend">
+        <div class="label">Blob → ObjectURL → lecteur audio</div>
+        <div class="desc"><code>URL.createObjectURL(blob)</code> → <code>audioUrl</code> (signal) → <code>&lt;audio [src]="audioUrl()"&gt;</code></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>2. L'intercepteur JWT et l'attribut <code>src</code></h2>
+  <div class="card">
+    <p><code>auth.interceptor.ts</code> n'intervient que sur les requêtes qui passent par le <code>HttpClient</code> d'Angular : c'est un maillon du pipeline HTTP d'Angular, câblé une seule fois dans <code>main.ts</code> via <code>provideHttpClient(withInterceptors([authInterceptor]))</code>.</p>
+    <p>Une URL posée directement dans un attribut <code>src</code> (par ex. <code>&lt;audio src="http://localhost:3000/api/tracks/123/audio"&gt;</code>) n'est <strong>jamais</strong> chargée par ce pipeline : c'est le <strong>navigateur lui-même</strong> qui déclenche une requête HTTP native dès qu'il rencontre cet attribut dans le DOM, complètement en dehors du code Angular. L'intercepteur ne s'exécute donc pas, et aucun header personnalisé (comme <code>Authorization: Bearer ...</code>) n'est ajouté.</p>
+    <div class="callout">
+      <strong>Conséquence directe :</strong> une piste protégée par JWT ne peut pas être lue avec une URL API directement dans <code>src</code> — elle recevrait un <code>401</code>. D'où le détour obligatoire par <code>HttpClient</code> (pour bénéficier de l'intercepteur) → <code>Blob</code> → <code>URL.createObjectURL()</code>, qui produit une URL locale de type <code>blob:...</code> que le navigateur peut lire nativement, sans nouvelle requête réseau.
+    </div>
+  </div>
+
+  <h2>3. Contrôles backend déjà en place, et conformité du frontend</h2>
+  <div class="card">
+    <table>
+      <tr><th>Contrôle</th><th>Où (backend/src/app.js)</th></tr>
+      <tr><td>Formats acceptés</td><td><code>multer({ fileFilter })</code> vérifie <code>allowed.has(file.mimetype)</code> — <code>audio/mpeg</code>, <code>audio/wav</code>, <code>audio/x-wav</code>, <code>audio/ogg</code>, <code>audio/mp4</code>, <code>audio/x-m4a</code></td></tr>
+      <tr><td>Taille maximale</td><td><code>multer({ limits: { fileSize: MAX_FILE_SIZE } })</code>, <code>MAX_FILE_SIZE = 25 * 1024 * 1024</code></td></tr>
+      <tr><td>Fichier obligatoire</td><td>route <code>POST /api/tracks</code> : <code>if (!req.file) return res.status(400)...</code></td></tr>
+      <tr><td>Champ <code>title</code></td><td>lu directement via <code>req.body.title</code> (texte du <code>FormData</code>, pas le fichier)</td></tr>
+    </table>
+    <p><strong>Conformité frontend :</strong> <code>track.service.ts</code> envoie exactement les deux champs attendus — <code>body.append('audio', file)</code> et <code>body.append('title', title)</code> — les noms correspondent au champ lu par Multer (<code>upload.single("audio")</code>) et au champ lu par Express (<code>req.body.title</code>). ✅ Conforme, rien à changer côté noms de champs.</p>
+    <div class="gap">
+      <strong>Manque identifié :</strong> le frontend actuel n'effectue <em>aucune</em> vérification avant l'appel HTTP (ni sur le format du fichier, ni sur sa taille) — il envoie systématiquement la requête et attend la réponse du serveur pour savoir si elle est valide.
+    </div>
+    <h3>Pourquoi la validation frontend ne remplace jamais la validation backend</h3>
+    <p>La validation frontend améliore l'expérience utilisateur : retour instantané, pas d'attente réseau inutile pour une erreur évidente (mauvais format, fichier trop lourd). Mais elle ne remplace <strong>jamais</strong> la validation serveur, car le frontend est entièrement sous le contrôle de l'utilisateur : il peut être contourné (DevTools, requête <code>curl</code> ou Postman directement vers l'API, un autre client que l'application Angular). Le serveur est le seul endroit qu'un attaquant ne contrôle pas — c'est donc la seule barrière réellement fiable.</p>
+  </div>
+
+  <h2>4. Questions mémoire, buffering et streaming</h2>
+
+  <div class="qa">
+    <div class="q">Le backend envoie-t-il le fichier entier en mémoire ou peut-il l'envoyer progressivement depuis le disque ?</div>
+    <div class="a">Il l'envoie progressivement depuis le disque. La route <code>GET /api/tracks/:id/audio</code> utilise <code>res.sendFile(audioPath, callback)</code> (Express), qui lit le fichier en flux (stream) directement depuis le disque vers la réponse HTTP, sans jamais charger l'intégralité du fichier en mémoire vive du serveur.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">Avec <code>HttpClient</code> et <code>responseType: "blob"</code>, à quel moment le composant reçoit-il généralement le fichier ?</div>
+    <div class="a">Seulement une fois le téléchargement <strong>intégralement terminé</strong>. L'Observable retourné par <code>HttpClient</code> n'émet sa valeur (<code>next(blob)</code>) qu'après réception complète de la réponse et assemblage en un objet <code>Blob</code> unique — pas de flux progressif exploitable par défaut (il faudrait <code>reportProgress: true</code> et écouter les événements <code>HttpEventType.DownloadProgress</code> pour un retour intermédiaire, mais le <code>Blob</code> complet n'arrive de toute façon qu'à la fin).</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">Si la bibliothèque contient 100 morceaux, les 100 fichiers audio sont-ils chargés en mémoire dès l'affichage de la liste ? Justifier à partir du code.</div>
+    <div class="a">Non. <code>load()</code> (l'affichage de la liste) n'appelle que <code>GET /api/tracks?page=...&amp;limit=...</code>, qui renvoie uniquement des <strong>métadonnées</strong> (titre, nom de fichier, taille, date) — jamais le contenu binaire. Le <code>Blob</code> audio n'est récupéré que lorsque l'utilisateur clique sur le bouton de lecture d'<strong>une</strong> piste précise (<code>play(track)</code> → <code>service.audio(track.id)</code>). De plus, <code>audioUrl</code> est un signal unique (pas un tableau) : chaque nouvelle lecture révoque l'URL précédente avant d'en créer une nouvelle, donc jamais plus d'un <code>Blob</code> actif à la fois, quel que soit le nombre de pistes dans la bibliothèque.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">Quelle différence y aurait-il avec 100 éléments <code>&lt;audio&gt;</code> utilisant directement une URL HTTP ?</div>
+    <div class="a">Deux problèmes majeurs. D'abord l'authentification : comme expliqué en section 2, une URL API posée directement dans <code>src</code> ne passe pas par l'intercepteur JWT — chaque requête échouerait avec un <code>401</code>. Ensuite la charge réseau : même en supposant l'authentification résolue autrement, le navigateur pourrait déclencher jusqu'à 100 requêtes HTTP simultanées ou en attente (selon l'attribut <code>preload</code> de chaque balise), contre une seule requête authentifiée à la fois, déclenchée à la demande explicite de l'utilisateur, dans l'approche actuelle.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">Pourquoi l'URL créée par <code>URL.createObjectURL</code> doit-elle être révoquée ?</div>
+    <div class="a">Parce qu'elle maintient le <code>Blob</code> sous-jacent <strong>vivant en mémoire</strong> tant qu'elle n'est pas explicitement révoquée via <code>URL.revokeObjectURL(url)</code> — même si l'élément <code>&lt;audio&gt;</code> qui l'utilisait a été retiré du DOM ou que l'utilisateur a changé de page. Sans révocation, chaque nouvelle lecture accumule un <code>Blob</code> supplémentaire en mémoire (fuite mémoire progressive), ce qui peut dégrader les performances, voire faire planter l'onglet sur une session longue avec beaucoup d'écoutes successives.</div>
+  </div>
+
+</div>
+</body>
+</html>
