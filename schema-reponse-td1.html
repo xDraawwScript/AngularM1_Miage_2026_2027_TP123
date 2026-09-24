@@ -416,6 +416,16 @@
     </ul>
   </div>
 
+  <h2>7. Signal vs <code>localStorage</code></h2>
+  <div class="card">
+    <p>Les deux servent à « retenir » l'état de connexion, mais à des niveaux différents :</p>
+    <ul>
+      <li><strong>Le Signal (<code>token</code>, <code>currentUser</code> dans <code>AuthService</code>)</strong> vit en mémoire, dans le JavaScript de la page en cours. Il est <em>réactif</em> : dès qu'il change, tous les templates qui le lisent (<code>auth.token()</code>, <code>auth.currentUser()</code>) se remettent à jour automatiquement, sans code supplémentaire. Il disparaît dès que l'onglet est fermé ou la page rechargée.</li>
+      <li><strong><code>localStorage</code></strong> est un stockage brut du navigateur, non réactif : lire sa valeur ne déclenche jamais de mise à jour de l'interface. Il n'est <em>pas</em> effacé au rechargement de la page — c'est justement ce qui permet de rester connecté après un F5.</li>
+    </ul>
+    <p>Les deux sont utilisés ensemble et se complètent : au démarrage de l'app, <code>token = signal(localStorage.getItem('gpc_token'))</code> relit la valeur persistée pour initialiser le Signal. Ensuite, chaque connexion/déconnexion écrit dans les deux à la fois (<code>storeAuthentication()</code> et <code>logout()</code> dans <code>auth.service.ts</code>) : le Signal pour que l'interface réagisse tout de suite, <code>localStorage</code> pour que la session survive à un rechargement.</p>
+  </div>
+
 </div>
 </body>
 </html>
