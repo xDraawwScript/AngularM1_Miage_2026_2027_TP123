@@ -264,3 +264,35 @@ Travail effectué sur la branche `tp-2` (créée depuis `main`), pour isoler le 
 - Le trajet complet Blob → ObjectURL → lecteur `<audio>`, et pourquoi ce détour est nécessaire (l'intercepteur JWT n'agit que sur les requêtes `HttpClient`, jamais sur un attribut `src` chargé nativement par le navigateur).
 - Que le streaming existe déjà côté backend (`res.sendFile`) mais pas côté `HttpClient` (le `Blob` n'arrive qu'une fois le téléchargement terminé).
 - Deux manques identifiés pour une prochaine étape : pas de révocation de l'`ObjectURL` à la destruction du composant, et aucune validation de fichier (format/taille) côté frontend avant l'appel HTTP — et pourquoi cette dernière ne dispenserait de toute façon jamais la validation backend déjà en place.
+
+## Mission 3 (TP2) — Compléments manquants + améliorations facultatives
+
+**Objectif.** Corriger les deux manques identifiés dans l'analyse précédente (révocation finale de l'`ObjectURL`, validations frontend avant l'upload) et implémenter une partie des améliorations facultatives du sujet : barre de progression, formatage lisible taille/date, filtre par titre (la confirmation de suppression et le rafraîchissement après suppression étaient déjà faits depuis la Mission 1 bonus).
+
+**Prompt principal.** « on fait les compléments manquants (révocation + validations) et ça [améliorations facultatives : barre de progression, suppression+confirmation, rafraîchissement après suppression, formatage taille/date, filtre par titre] ».
+
+**Plan proposé par l'agent (implémentation, sans débat d'architecture cette fois — corrections et ajouts factuels, pas de choix ouverts).**
+- `tracks-page.ts` : `ngOnDestroy` révoque désormais `audioUrl()` s'il est encore défini.
+- Constantes `ALLOWED_AUDIO_TYPES`/`MAX_FILE_SIZE` dupliquées côté frontend (miroir exact des contrôles déjà en place dans `backend/src/app.js`), vérifiées dans `choose()` dès la sélection du fichier (signal `uploadError`), avec réinitialisation de l'`<input type="file">` si le fichier est rejeté.
+- `track.service.ts` : `upload()` passe désormais par `{ reportProgress: true, observe: 'events' }` pour exposer la progression ; `tracks-page.ts` traduit les événements `HttpEventType.UploadProgress`/`Response` en signal `uploadProgress` (pourcentage), affiché via un `<progress>` ; le bouton « Envoyer » est désactivé pendant l'envoi (empêche une double soumission, effet de bord nécessaire pour qu'une barre de progression ait un sens).
+- `formatSize()`/`formatDate()` : corrige un bug déjà présent (la taille en octets bruts était étiquetée « Ko » sans conversion) et ajoute la date d'ajout, absente jusque-là de l'affichage.
+- `filterTitle` (FormControl) + `toSignal(valueChanges)` + `computed()` : filtre client sur la page actuellement chargée (pas de nouvelle route serveur, conforme à « ne modifiez pas le backend »).
+- Bug annexe corrigé en testant : après un envoi réussi, l'`<input type="file">` gardait visuellement l'ancien nom de fichier bien que l'état interne (`this.file`) soit remis à `undefined` — ajout d'un `@ViewChild('fileInput')` pour vider aussi la valeur native de l'input.
+
+**Vérifications réalisées.**
+- Filtre : tapé « punch » → une seule piste sur cinq affichée, effacé → retour à la liste complète.
+- Validation de format : fichier `.txt` (`text/plain`) injecté via un faux `File`/`DataTransfer` (upload non scriptable dans le navigateur automatisé) → message « Format non accepté... » affiché, bouton Envoyer resté désactivé.
+- Validation de taille : faux fichier de 26 Mo → message « Fichier trop volumineux (25 Mo maximum). ».
+- Upload réel de bout en bout (deux faux fichiers audio valides, ~300–500 Ko) : succès, apparition en tête de liste, retour à la page 1, champ fichier et titre vidés (y compris l'affichage natif de l'input), pistes de test supprimées après vérification via `DELETE /api/tracks/:id`.
+- Formatage : tailles réelles affichées correctement (ex. « 584.7 Ko » au lieu de « 598969 Ko »), dates lisibles (« 24 sept. 2026 »).
+
+**Erreurs ou propositions rejetées.** Aucune proposition alternative débattue cette fois : ce tour corrigeait des manques déjà identifiés et implémentait des demandes optionnelles explicites, sans ambiguïté de choix.
+
+**Fichiers effectivement modifiés.** `track.service.ts`, `tracks-page.ts`, `tracks-page.html`, `tracks-page.css` — commit `151efac` (branche `tp-2`).
+
+**Preuve de fonctionnement.** Voir « Vérifications réalisées » — tests réels effectués dans le navigateur (validations, upload complet, filtre), pas seulement une relecture du code.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi dupliquer les règles de validation (format, taille) côté frontend n'est pas une redondance inutile : c'est le seul moyen d'offrir un retour instantané, tout en sachant que le backend réappliquera exactement les mêmes règles de son côté, pour de vrai cette fois (sécurité).
+- Pourquoi `HttpClient` a besoin de `{ reportProgress: true, observe: 'events' }` pour exposer une progression, alors que l'appel « simple » ne renvoie que la réponse finale.
+- Pourquoi vider un `<input type="file">` demande de manipuler directement l'élément du DOM (`nativeElement.value = ''`) : contrairement à un `<input text>` piloté par un `FormControl`, l'attribut `value` d'un input file ne peut pas être réécrit par data-binding (restriction de sécurité des navigateurs), d'où le besoin d'un `@ViewChild`.
