@@ -139,3 +139,66 @@ Le Checkpoint du sujet demande des captures Network (méthode, URL, corps JSON, 
 ![Connexion refusée](preuves/mission1-login-401.png)
 ![Lecture/MAJ /api/users/me](preuves/mission1-users-me.png)
 ```
+
+# Rapport d'usage de l'IA - TP2
+
+Travail effectué sur la branche `tp-2` (créée depuis `main`), pour isoler le TP2 du TP1 déjà mergé/poussé.
+
+## Mission 0 (TP2) — Vérification des prérequis
+
+**Objectif.** Le sujet TP2 exige avant toute chose : « Le TP1 doit être fonctionnel. Le backend doit être lancé, le frontend doit utiliser la bonne cible dans `proxy.conf.json`, et le compte de test doit pouvoir se connecter. » Équivalent de la Mission 0 du TP1 : une vérification, pas une mission de code.
+
+**Prompt principal.** « On va faire ça mission par mission on commence par le 0 ».
+
+**Vérifications réalisées.**
+- `GET /api/health` → `200 {"status":"ok"}`.
+- `proxy.conf.json` : `/api` → `http://localhost:3000` (correct).
+- Connexion réelle via l'UI (`demo@example.com` / `Demo1234!`) après avoir vidé `localStorage` → redirection sur `/tracks`, token présent, bibliothèque affichée.
+- Fichiers de test présents (`song1.mp3`, `song2.mp3`).
+- État des lieux du code existant pertinent pour la Mission 2 : `TrackService.list(page, limit)` transmettait déjà les paramètres au serveur (pas de pagination locale), les Signals `tracks`/`page`/`pages`/`loading` existaient déjà, `@for`/`@empty`/`@if` et les boutons Préc./Suiv. désactivés aux bornes étaient déjà en place.
+
+**Erreurs ou propositions rejetées.** Aucune, étape de lecture seule.
+
+**Fichiers effectivement modifiés.** Aucun (vérification uniquement).
+
+**Preuve de fonctionnement.** `curl http://localhost:3000/api/health` → `200` ; connexion UI aboutissant sur `/tracks` avec token en `localStorage`.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.** Que la Mission 2 du sujet ne part pas de zéro : la pagination serveur et les Signals de base existaient déjà dans le starter, seul le signal d'erreur manquait (voir Mission 2 ci-dessous).
+
+## Mission 2 — Bibliothèque paginée
+
+**Objectif.** Représenter `tracks`, `page`, `pages`, `loading` **et l'erreur éventuelle** avec des Signals, avec une vraie requête HTTP serveur à chaque changement de page (aucune pagination locale). Parties avancées (Angular Material Paginator, plugin Mongoose `aggregate-paginate-v2`) explicitement écartées par l'étudiant car facultatives.
+
+**Prompt principal.** « on passe à la deux, ne fais pas ce qui est optionnel, redige bien tout dans le fichier demandé et débats avec moi pour faire des choix d'architecture, tu mets les choix et les décisions dans le fichier, on fait ce tp2 dans une branche tp-2 ».
+
+**Débat et décisions d'architecture (avant implémentation).**
+
+1. **Comportement du signal `page` en cas d'échec de chargement.** Deux options proposées :
+   - **A — Rollback** : `page` n'est mis à jour qu'après le succès de la requête HTTP ; en cas d'échec, l'étiquette de pagination affichée reste cohérente avec les pistes réellement montrées.
+   - **B — Optimiste** : `page` est mis à jour immédiatement au clic, avant même la réponse du serveur ; plus simple mais peut afficher une étiquette de page incohérente avec le contenu si la requête échoue.
+
+   → **Décision retenue : A (rollback).** Choix de l'étudiant, validé.
+
+2. **Message d'erreur affiché.** Tenter `error.error?.message` (message renvoyé par le backend s'il existe), sinon un message générique fixe (« Impossible de charger la bibliothèque »), affiché avec la classe `.error` déjà utilisée sur les pages login/register — cohérence de style avec l'existant plutôt qu'un nouveau composant d'erreur.
+
+   → **Décision retenue : validée telle quelle** par l'étudiant.
+
+**Plan proposé par l'agent (implémentation).**
+- `tracks-page.ts` : ajout du signal `readonly error = signal('')` ; `load()` prend désormais un paramètre optionnel `targetPage` (par défaut la page courante), le remet à zéro (`error.set('')`) à chaque tentative, et ne fait `this.page.set(targetPage)` que dans le callback `next` (succès) — jamais dans `error`. `go(page)` appelle directement `load(page)` au lieu de faire `page.set(page)` puis `load()`. `upload()` appelle `load(1)` après un envoi réussi, au lieu de faire `page.set(1)` puis `load()` séparément (même logique unifiée).
+- `tracks-page.html` : ajout d'un `@if (error()) { <p class="error">{{ error() }}</p> }` juste après le `@if (loading())`.
+
+**Vérifications réalisées.**
+- Fonctionnement normal inchangé : la bibliothèque se charge, « Page 1 / 1 » correct.
+- Simulation d'échec : arrêt volontaire du backend (`Stop-Process` sur le process Node du serveur), clic sur « Actualiser » → message « Impossible de charger la bibliothèque » affiché, la piste déjà présente reste visible (pas de vidage de liste trompeur), l'étiquette de page ne change pas.
+- Redémarrage du backend, nouveau clic sur « Actualiser » → le message d'erreur disparaît, la liste se recharge normalement (confirme que `error` est bien remis à zéro à chaque tentative).
+
+**Erreurs ou propositions rejetées.** Aucune : les deux options ont été présentées à l'étudiant avant tout code, l'option A a été choisie directement, pas d'implémentation à défaire.
+
+**Fichiers effectivement modifiés.** `tracks-page.ts`, `tracks-page.html` — commit `333b553` (branche `tp-2`).
+
+**Preuve de fonctionnement.** Voir « Vérifications réalisées » ci-dessus (test réel d'échec/succès en conditions réelles, pas seulement en théorie).
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi committer la valeur de `page` seulement en cas de succès évite une désynchronisation entre l'étiquette de pagination affichée et les données réellement montrées à l'écran.
+- Pourquoi il faut remettre `error` à `''` au début de chaque tentative de chargement (`load()`), et pas seulement le définir en cas d'échec : sinon un message d'erreur resterait affiché indéfiniment après une tentative suivante réussie.
+- Pourquoi `error.error?.message` peut être `undefined` pour certaines pannes (ex. erreur serveur générique sans corps JSON exploitable, comme le crash MongoDB rencontré en TP1) — d'où l'importance du message de repli fixe.
