@@ -14,11 +14,15 @@ export class TrackService {
     });
   }
 
+  /** `reportProgress`/`observe: 'events'` exposent la progression de l'upload. */
   upload(file: File, title: string) {
     const body = new FormData();
     body.append('audio', file);
     body.append('title', title);
-    return this.http.post<Track>('/api/tracks', body);
+    return this.http.post<Track>('/api/tracks', body, {
+      reportProgress: true,
+      observe: 'events',
+    });
   }
 
   audio(id: string) {

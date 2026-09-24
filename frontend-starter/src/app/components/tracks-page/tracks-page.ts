@@ -1,9 +1,22 @@
-import { Component, inject, OnDestroy, signal, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, inject, OnDestroy, signal, ViewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { HttpEventType } from '@angular/common/http';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Track } from '../../shared/models/track.model';
 import { TrackService } from '../../shared/services/track.service';
 import { FrenchPaginatorIntl } from './mat-paginator-intl-fr';
+
+/** Miroir des contrôles déjà appliqués côté backend (backend/src/app.js). */
+const ALLOWED_AUDIO_TYPES = new Set([
+  'audio/mpeg',
+  'audio/wav',
+  'audio/x-wav',
+  'audio/ogg',
+  'audio/mp4',
+  'audio/x-m4a',
+]);
+const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
 @Component({
   imports: [ReactiveFormsModule, MatPaginatorModule],
@@ -23,6 +36,9 @@ export class TracksPageComponent implements OnDestroy {
    */
   @ViewChild(MatPaginator) private paginator?: MatPaginator;
 
+  /** Pour vider l'affichage natif de l'input file après un envoi réussi. */
+  @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
+
   readonly tracks = signal<Track[]>([]);
   readonly page = signal(1);
   readonly pages = signal(1);
@@ -31,7 +47,19 @@ export class TracksPageComponent implements OnDestroy {
   readonly error = signal('');
   readonly audioUrl = signal('');
   readonly title = new FormControl('', { nonNullable: true });
+  readonly uploadError = signal('');
+  readonly uploadProgress = signal<number | null>(null);
   file?: File;
+
+  readonly filterTitle = new FormControl('', { nonNullable: true });
+  private readonly filterValue = toSignal(this.filterTitle.valueChanges, { initialValue: '' });
+
+  /** Filtre côté client, sur la page actuellement chargée (pas de nouvelle route serveur). */
+  readonly filteredTracks = computed(() => {
+    const query = this.filterValue().trim().toLowerCase();
+    if (!query) return this.tracks();
+    return this.tracks().filter((track) => track.title.toLowerCase().includes(query));
+  });
 
   constructor() {
     document.body.classList.add('theme-fleetwood');
@@ -40,11 +68,48 @@ export class TracksPageComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     document.body.classList.remove('theme-fleetwood');
+    const url = this.audioUrl();
+    if (url) URL.revokeObjectURL(url);
   }
 
+  /**
+   * Miroir des vérifications déjà faites côté backend (format + taille) : un
+   * retour instantané ici améliore l'expérience, mais ne dispense jamais le
+   * serveur de refaire exactement les mêmes contrôles de son côté.
+   */
   choose(event: Event): void {
-    this.file = (event.target as HTMLInputElement).files?.[0];
-    console.debug('[TracksPage] Fichier sélectionné', this.file?.name);
+    const input = event.target as HTMLInputElement;
+    const selected = input.files?.[0];
+    this.uploadError.set('');
+    this.file = undefined;
+
+    if (!selected) return;
+
+    if (!ALLOWED_AUDIO_TYPES.has(selected.type)) {
+      this.uploadError.set('Format non accepté (MP3, WAV, OGG ou M4A uniquement).');
+      input.value = '';
+      return;
+    }
+
+    if (selected.size > MAX_FILE_SIZE) {
+      this.uploadError.set('Fichier trop volumineux (25 Mo maximum).');
+      input.value = '';
+      return;
+    }
+
+    this.file = selected;
+    console.debug('[TracksPage] Fichier sélectionné', this.file.name);
+  }
+
+  formatSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} o`;
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${kb.toFixed(1)} Ko`;
+    return `${(kb / 1024).toFixed(1)} Mo`;
+  }
+
+  formatDate(iso: string): string {
+    return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   /**
@@ -81,16 +146,26 @@ export class TracksPageComponent implements OnDestroy {
   }
 
   upload(): void {
-    if (!this.file) return;
+    if (!this.file || this.uploadProgress() !== null) return;
 
+    this.uploadProgress.set(0);
     this.service.upload(this.file, this.title.value || this.file.name).subscribe({
-      next: (track) => {
-        console.debug('[TracksPage] Piste envoyée', track.id);
-        this.title.setValue('');
-        this.file = undefined;
-        this.load(1);
+      next: (event) => {
+        if (event.type === HttpEventType.UploadProgress && event.total) {
+          this.uploadProgress.set(Math.round((100 * event.loaded) / event.total));
+        } else if (event.type === HttpEventType.Response) {
+          console.debug('[TracksPage] Piste envoyée', event.body?.id);
+          this.uploadProgress.set(null);
+          this.title.setValue('');
+          this.file = undefined;
+          if (this.fileInput) this.fileInput.nativeElement.value = '';
+          this.load(1);
+        }
       },
-      error: (error) => console.error('[TracksPage] Envoi impossible', error),
+      error: (error) => {
+        console.error('[TracksPage] Envoi impossible', error);
+        this.uploadProgress.set(null);
+      },
     });
   }
 

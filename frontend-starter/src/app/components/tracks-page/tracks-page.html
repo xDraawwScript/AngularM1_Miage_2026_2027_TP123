@@ -9,8 +9,19 @@
     <article class="side side-a">
       <h2>Importer</h2>
       <label>Titre<input [formControl]="title" /></label>
-      <label>Fichier audio<input type="file" accept="audio/*" (change)="choose($event)" /></label>
-      <button type="button" (click)="upload()" [disabled]="!file">Envoyer</button>
+      <label>Fichier audio<input #fileInput type="file" accept="audio/*" (change)="choose($event)" /></label>
+      @if (uploadError()) {
+        <p class="error">{{ uploadError() }}</p>
+      }
+      @if (uploadProgress(); as progress) {
+        <div class="upload-progress">
+          <progress [value]="progress" max="100"></progress>
+          <span>{{ progress }}%</span>
+        </div>
+      }
+      <button type="button" (click)="upload()" [disabled]="!file || uploadProgress() !== null">
+        {{ uploadProgress() !== null ? 'Envoi…' : 'Envoyer' }}
+      </button>
     </article>
 
     <article class="side side-b">
@@ -18,6 +29,7 @@
         <h2>Mes pistes</h2>
         <button type="button" (click)="load()">Actualiser</button>
       </div>
+      <input class="filter-input" [formControl]="filterTitle" placeholder="Filtrer par titre…" />
       @if (loading()) {
         <p>Chargement…</p>
       }
@@ -25,18 +37,22 @@
         <p class="error">{{ error() }}</p>
       }
       <ol class="tracklist">
-        @for (track of tracks(); track track.id; let i = $index) {
+        @for (track of filteredTracks(); track track.id; let i = $index) {
           <li class="track">
             <span class="num">{{ (i + 1) < 10 ? '0' + (i + 1) : i + 1 }}</span>
             <span class="meta">
               <b>{{ track.title }}</b>
-              <small>{{ track.originalName }} · {{ track.size }} Ko</small>
+              <small>{{ track.originalName }} · {{ formatSize(track.size) }} · {{ formatDate(track.createdAt) }}</small>
             </span>
             <button type="button" class="play" (click)="play(track)" [attr.aria-label]="'Lire ' + track.title">▶</button>
             <button type="button" class="delete" (click)="remove(track)" [attr.aria-label]="'Supprimer ' + track.title">✕</button>
           </li>
         } @empty {
-          <p>Aucune piste.</p>
+          @if (tracks().length > 0) {
+            <p>Aucun résultat pour ce filtre.</p>
+          } @else {
+            <p>Aucune piste.</p>
+          }
         }
       </ol>
       <mat-paginator
