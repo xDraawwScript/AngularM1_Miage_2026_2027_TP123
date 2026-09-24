@@ -1,62 +1,130 @@
+/* Fiche technique brutaliste plein écran : grille millimétrée, typographie
+   condensée, présentation "dossier" plutôt que carte flottante. */
+
 :host {
   display: block;
-  max-width: 700px;
-  margin: 3rem auto;
-  font-family: 'Oswald', sans-serif;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  margin-left: -50vw;
+  min-height: calc(100vh - 72px);
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 48px),
+    #050505;
+  color: #eaeaea;
+  font-family: 'Courier Prime', monospace;
+  padding: 6vw 8vw 5vw;
 }
 
-h1 {
-  font-family: 'Metal Mania', cursive;
-  font-size: 2.8rem;
+.dossier-head {
+  border-bottom: 1px solid #333;
+  padding-bottom: 1.4rem;
+  margin-bottom: 2rem;
+}
+
+.dossier-head .tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  color: #9a9a9a;
+  border: 1px solid #444;
+  padding: 3px 10px;
+  margin-bottom: 0.9rem;
+}
+
+.dossier-head h1 {
+  font-family: 'Unica One', sans-serif;
   font-weight: 400;
-  color: #e6e6e6;
-  text-shadow: 0 0 14px rgba(200, 200, 200, 0.4), 2px 2px 0 #000;
-  margin: 0 0 1.4rem;
-}
-
-.card {
-  background: #111214;
-  border: 1px solid #2a2a2a;
-  clip-path: polygon(0 0, 96% 0, 100% 8%, 100% 100%, 4% 100%, 0 92%);
-  box-shadow: 0 0 0 1px #000, 0 20px 50px rgba(0, 0, 0, 0.7);
-  color: #ccc;
-}
-
-.card b {
-  font-family: 'Metal Mania', cursive;
-  font-weight: 400;
-  font-size: 1.4rem;
-  color: #e6e6e6;
+  font-size: clamp(2.8rem, 9vw, 5.8rem);
+  margin: 0;
+  color: #fff;
   letter-spacing: 0.02em;
 }
 
-label {
+.reload {
+  background: none;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 0.5rem 1rem;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-bottom: 2.2rem;
+}
+
+.reload:hover {
+  border-color: #eaeaea;
+  color: #fff;
+}
+
+.spec {
+  max-width: 640px;
+  margin: 0 0 3rem;
+}
+
+.spec .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px dashed #2c2c2c;
+}
+
+.spec dt {
+  color: #7a7a7a;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  margin: 0;
+}
+
+.spec dd {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #fff;
+}
+
+.rename {
+  max-width: 420px;
+}
+
+.rename label {
+  display: block;
   color: #9a9a9a;
   text-transform: uppercase;
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.4rem;
 }
 
-input {
-  background: #1a1b1d;
+.rename input {
+  width: 100%;
+  background: #0e0e0e;
   border: 1px solid #333;
-  color: #eee;
+  color: #fff;
+  padding: 0.7rem;
+  font-family: 'Courier Prime', monospace;
+  border-radius: 0;
 }
 
-input:focus {
+.rename input:focus {
   outline: none;
   border-color: #b3021f;
-  box-shadow: 0 0 0 3px rgba(179, 2, 31, 0.3);
 }
 
-button {
-  background: #b3021f;
-  color: #eee;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  border-radius: 2px;
+.rename button {
+  margin-top: 1.2rem;
+  background: none;
+  border: none;
+  color: #b3021f;
+  font-family: 'Courier Prime', monospace;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  padding: 0;
 }
 
-button:hover:not(:disabled) {
-  background: #8a0118;
+.rename button:hover {
+  color: #fff;
 }
