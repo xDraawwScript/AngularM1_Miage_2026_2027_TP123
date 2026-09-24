@@ -332,3 +332,12 @@ Travail effectué sur la branche `tp-2` (créée depuis `main`), pour isoler le 
 **Ce que chaque membre sait maintenant expliquer sans l'agent.**
 - Pourquoi il ne faut retélécharger le `Blob` que pour une piste différente, jamais pour rejouer/mettre en pause la même piste déjà chargée (économie de requête réseau, cohérent avec la Mission 3 sur le streaming/mémoire).
 - Pourquoi l'état « en cours de lecture » doit être piloté par les événements natifs de l'élément `<audio>` (`play`/`pause`/`ended`) plutôt que par un simple booléen mis à jour au clic : l'utilisateur peut aussi mettre en pause via les contrôles natifs du lecteur, ou la piste peut se terminer toute seule — dans les deux cas le bouton doit rester synchronisé avec l'état réel du lecteur.
+
+## Captures Network TP2 (Checkpoint)
+
+Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
+
+```markdown
+![Changement de page](preuves/td2-page-suivante.png)
+![Lecture audio authentifiée](preuves/td2-play-audio.png)
+```
