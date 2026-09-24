@@ -129,71 +129,94 @@
   min-width: 3ch;
 }
 
-.tracklist {
-  list-style: none;
-  margin: 1.2rem 0;
-  padding: 0;
-}
-
-.track {
-  display: flex;
-  align-items: baseline;
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
-  padding: 0.9rem 0;
-  border-bottom: 1px dotted #8a5a2a;
+  margin: 1.2rem 0;
 }
 
-.track .num {
-  font-variant-numeric: tabular-nums;
-  color: #8a5a2a;
-  font-size: 0.95rem;
-  width: 2ch;
-}
-
-.track .meta {
-  flex: 1;
+.track-card {
+  background: #fffaf0;
+  border: 1px solid #d8b98a;
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
 }
 
-.track .meta b {
-  font-size: 1.15rem;
+.track-card h3 {
+  margin: 0;
+  font-size: 1.2rem;
   font-weight: 600;
+  line-height: 1.2;
 }
 
-.track .meta small {
+.track-card .original {
+  margin: 0;
   color: #6b5236;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  word-break: break-word;
 }
 
-.track .play {
+.track-card .specs {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.15rem 0.6rem;
+  font-size: 0.82rem;
+}
+
+.track-card .specs dt {
+  color: #8a5a2a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.7rem;
+}
+
+.track-card .specs dd {
+  margin: 0;
+  color: #3a2a18;
+}
+
+.track-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+.track-card .play {
+  flex: 1;
   background: none;
   border: 1px solid #3a2a18;
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
   color: #3a2a18;
   cursor: pointer;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.95rem;
 }
 
-.track .play:hover {
+.track-card .play:hover {
   background: #3a2a18;
   color: #f1e6d3;
 }
 
-.track .delete {
+.track-card .delete {
   background: none;
   border: 1px solid #8a3a2a;
   border-radius: 50%;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   color: #8a3a2a;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   line-height: 1;
 }
 
-.track .delete:hover {
+.track-card .delete:hover {
   background: #8a3a2a;
   color: #f1e6d3;
 }

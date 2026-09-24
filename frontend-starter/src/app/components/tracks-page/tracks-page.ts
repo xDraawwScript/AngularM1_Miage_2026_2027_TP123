@@ -39,6 +39,9 @@ export class TracksPageComponent implements OnDestroy {
   /** Pour vider l'affichage natif de l'input file après un envoi réussi. */
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
 
+  /** Pour piloter play()/pause() sans re-télécharger le Blob déjà en mémoire. */
+  @ViewChild('audioPlayer') private audioPlayer?: ElementRef<HTMLAudioElement>;
+
   readonly tracks = signal<Track[]>([]);
   readonly page = signal(1);
   readonly pages = signal(1);
@@ -46,6 +49,8 @@ export class TracksPageComponent implements OnDestroy {
   readonly loading = signal(false);
   readonly error = signal('');
   readonly audioUrl = signal('');
+  readonly currentTrackId = signal<string | null>(null);
+  readonly isPlaying = signal(false);
   readonly title = new FormControl('', { nonNullable: true });
   readonly uploadError = signal('');
   readonly uploadProgress = signal<number | null>(null);
@@ -112,6 +117,19 @@ export class TracksPageComponent implements OnDestroy {
     return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
+  /** Nom de format lisible à partir du mimetype (mêmes types que ALLOWED_AUDIO_TYPES). */
+  formatType(mimeType: string): string {
+    const labels: Record<string, string> = {
+      'audio/mpeg': 'MP3',
+      'audio/wav': 'WAV',
+      'audio/x-wav': 'WAV',
+      'audio/ogg': 'OGG',
+      'audio/mp4': 'M4A',
+      'audio/x-m4a': 'M4A',
+    };
+    return labels[mimeType] ?? mimeType;
+  }
+
   /**
    * `targetPage` n'est écrit dans le signal `page` qu'après succès de la requête :
    * en cas d'échec, l'étiquette de pagination affichée reste cohérente avec les
@@ -171,7 +189,17 @@ export class TracksPageComponent implements OnDestroy {
     });
   }
 
+  /** Piste déjà chargée : bascule play/pause sur l'élément audio existant, sans
+   *  refaire de requête. Piste différente : télécharge son Blob comme avant. */
   play(track: Track): void {
+    if (this.currentTrackId() === track.id && this.audioPlayer) {
+      const player = this.audioPlayer.nativeElement;
+      if (player.paused) void player.play();
+      else player.pause();
+      return;
+    }
+
+    this.currentTrackId.set(track.id);
     this.service.audio(track.id).subscribe({
       next: (blob) => {
         console.debug('[TracksPage] Audio chargé', track.id);
@@ -179,8 +207,19 @@ export class TracksPageComponent implements OnDestroy {
         if (previousUrl) URL.revokeObjectURL(previousUrl);
         this.audioUrl.set(URL.createObjectURL(blob));
       },
-      error: (error) => console.error('[TracksPage] Lecture impossible', error),
+      error: (error) => {
+        console.error('[TracksPage] Lecture impossible', error);
+        this.currentTrackId.set(null);
+      },
     });
+  }
+
+  onAudioPlay(): void {
+    this.isPlaying.set(true);
+  }
+
+  onAudioPause(): void {
+    this.isPlaying.set(false);
   }
 
   remove(track: Track): void {
