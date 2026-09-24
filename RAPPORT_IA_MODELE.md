@@ -296,3 +296,39 @@ Travail effectué sur la branche `tp-2` (créée depuis `main`), pour isoler le 
 - Pourquoi dupliquer les règles de validation (format, taille) côté frontend n'est pas une redondance inutile : c'est le seul moyen d'offrir un retour instantané, tout en sachant que le backend réappliquera exactement les mêmes règles de son côté, pour de vrai cette fois (sécurité).
 - Pourquoi `HttpClient` a besoin de `{ reportProgress: true, observe: 'events' }` pour exposer une progression, alors que l'appel « simple » ne renvoie que la réponse finale.
 - Pourquoi vider un `<input type="file">` demande de manipuler directement l'élément du DOM (`nativeElement.value = ''`) : contrairement à un `<input text>` piloté par un `FormControl`, l'attribut `value` d'un input file ne peut pas être réécrit par data-binding (restriction de sécurité des navigateurs), d'où le besoin d'un `@ViewChild`.
+
+## Mission 3 (TP2) — Vérification Checkpoint, cards, bouton lecture/pause
+
+**Objectif.** Avant de merger `tp-2` dans `main` : vérifier chaque point du Checkpoint Network et des Livrables TP2 du sujet, corriger les manques trouvés, et ajouter le changement d'état du bouton de lecture (play ↔ pause) demandé par l'étudiant.
+
+**Prompt principal.** « Si tout est bon merge dans main » (après avoir reçu la liste Checkpoint/Livrables), puis en cours de vérification : « fais aussi quand on clique sur un son le bouton change [...] il passe en mode play ».
+
+**Vérifications réalisées avant merge (Checkpoint Network).**
+- Changement de page → nouveau `page` dans l'URL : déjà vérifié en Mission 2 AVANCÉ.
+- Upload multipart avec `audio`+`title` : déjà vérifié en Mission 1/3.
+- Réponse de lecture = flux audio : `curl -D -` sur `GET /api/tracks/:id/audio` → `Content-Type: audio/mpeg`, `Accept-Ranges: bytes` confirmés.
+- Piste lisible uniquement par son propriétaire : testé avec un second compte fraîchement créé (`intrus-test@example.com`) → `GET /api/tracks/:id/audio` avec le token de cet autre utilisateur sur une piste de `demo` → `404` (et `401` sans aucun token).
+- Erreur affichée pour un fichier invalide : **manque trouvé** — l'erreur serveur pendant l'upload n'était loguée qu'en console, jamais affichée à l'utilisateur. Corrigé (réutilisation du signal `uploadError`).
+
+**Vérification des Livrables TP2 — manque trouvé et débattu avec l'étudiant.** Le sujet demande explicitement des « cards » affichant titre, nom original, **format**, taille, date d'ajout et une action de lecture. L'implémentation ne présentait qu'une liste numérotée sans le champ format. Question posée à l'étudiant (corriger avant de merger, ou merger tel quel et corriger après) → réponse : corriger avant.
+
+**Plan proposé par l'agent (implémentation).**
+- Ajout de `formatType(mimeType)` (mimetype → libellé lisible : MP3/WAV/OGG/M4A).
+- Remplacement de la liste `<ol>/<li>` par une grille de cards (`<article class="track-card">`), une par piste, affichant titre, nom original, et une `<dl>` Format/Taille/Ajouté le, plus les actions Lire/Supprimer.
+- Bouton lecture dynamique : ajout des signals `currentTrackId`/`isPlaying`, d'un `@ViewChild('audioPlayer')`, et des écouteurs `(play)`/`(pause)`/`(ended)` sur l'élément `<audio>`. Cliquer sur une piste différente télécharge son `Blob` comme avant ; recliquer sur la piste déjà chargée bascule juste `play()`/`pause()` sur l'élément existant, sans reformuler de requête.
+
+**Vérifications réalisées (nouvelles).**
+- Cards : format/taille/date bien affichés pour chaque piste, mise en page en grille responsive.
+- Lecture/pause : script de test cliquant « Lire » puis vérifiant `audio.paused === false` et un seul bouton sur « ⏸ Pause » parmi les 5 (les autres restent « ▶ Lire ») ; puis clic sur ce même bouton → `audio.paused === true` et libellé revenu à « ▶ Lire ».
+- Changement de piste en cours de lecture : lancé « punch-a-rock », puis « perdre » → le bouton de « punch-a-rock » repasse bien à « ▶ Lire » (un seul `audioUrl`/lecteur actif à la fois, cohérent avec l'analyse Mission 3 sur la mémoire).
+- Fin de piste naturelle (`ended`) : bouton revenu automatiquement à « ▶ Lire » sans action de l'utilisateur.
+
+**Erreurs ou propositions rejetées.** Aucune : les manques trouvés étaient des oublis factuels (pas de choix à trancher), corrigés directement.
+
+**Fichiers effectivement modifiés.** `tracks-page.ts` (erreur upload, cards, play/pause — 2 commits), `tracks-page.html`, `tracks-page.css` — commits `2011f33` et `a7ad645` (branche `tp-2`).
+
+**Preuve de fonctionnement.** Voir « Vérifications réalisées » ci-dessus : tous les tests ont été faits en conditions réelles (vraies requêtes HTTP, vrai élément `<audio>`, pas seulement une relecture de code).
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi il ne faut retélécharger le `Blob` que pour une piste différente, jamais pour rejouer/mettre en pause la même piste déjà chargée (économie de requête réseau, cohérent avec la Mission 3 sur le streaming/mémoire).
+- Pourquoi l'état « en cours de lecture » doit être piloté par les événements natifs de l'élément `<audio>` (`play`/`pause`/`ended`) plutôt que par un simple booléen mis à jour au clic : l'utilisateur peut aussi mettre en pause via les contrôles natifs du lecteur, ou la piste peut se terminer toute seule — dans les deux cas le bouton doit rester synchronisé avec l'état réel du lecteur.
