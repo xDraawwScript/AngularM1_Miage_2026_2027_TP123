@@ -1,19 +1,19 @@
-<section>
-  <div class="hero">
-    <p class="eyebrow">MA BIBLIOTHÈQUE</p>
+<section class="sleeve">
+  <div class="sleeve-head">
+    <p class="eyebrow">Ma bibliothèque</p>
     <h1>Backing tracks</h1>
-    <p>Importez, retrouvez et écoutez vos morceaux de travail.</p>
+    <p class="intro">Importez, retrouvez et écoutez vos morceaux de travail.</p>
   </div>
 
-  <div class="grid">
-    <article class="card">
+  <div class="sleeve-body">
+    <article class="side side-a">
       <h2>Importer</h2>
       <label>Titre<input [formControl]="title" /></label>
       <label>Fichier audio<input type="file" accept="audio/*" (change)="choose($event)" /></label>
       <button type="button" (click)="upload()" [disabled]="!file">Envoyer</button>
     </article>
 
-    <article class="card">
+    <article class="side side-b">
       <div class="row">
         <h2>Mes pistes</h2>
         <button type="button" (click)="load()">Actualiser</button>
@@ -21,17 +21,20 @@
       @if (loading()) {
         <p>Chargement…</p>
       }
-      @for (track of tracks(); track track.id) {
-        <div class="track">
-          <div>
-            <b>{{ track.title }}</b>
-            <small>{{ track.originalName }} · {{ track.size }} Ko</small>
-          </div>
-          <button type="button" (click)="play(track)" [attr.aria-label]="'Lire ' + track.title">▶</button>
-        </div>
-      } @empty {
-        <p>Aucune piste.</p>
-      }
+      <ol class="tracklist">
+        @for (track of tracks(); track track.id; let i = $index) {
+          <li class="track">
+            <span class="num">{{ (i + 1) < 10 ? '0' + (i + 1) : i + 1 }}</span>
+            <span class="meta">
+              <b>{{ track.title }}</b>
+              <small>{{ track.originalName }} · {{ track.size }} Ko</small>
+            </span>
+            <button type="button" class="play" (click)="play(track)" [attr.aria-label]="'Lire ' + track.title">▶</button>
+          </li>
+        } @empty {
+          <p>Aucune piste.</p>
+        }
+      </ol>
       <div class="pager">
         <button type="button" (click)="go(page() - 1)" [disabled]="page() === 1">Préc.</button>
         <span>Page {{ page() }} / {{ pages() }}</span>

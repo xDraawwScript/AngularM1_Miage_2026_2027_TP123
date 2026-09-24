@@ -1,53 +1,188 @@
+/* Pochette de vinyle ouverte façon "liner notes" : tracklist numérotée avec
+   points de suite, typographie éditoriale, pas de carte arrondie ni de disque
+   décoratif générique. */
+
 :host {
   display: block;
-  font-family: 'Oswald', sans-serif;
-}
-
-.hero {
-  background: linear-gradient(135deg, #7a4a1f, #c98a3e 55%, #f2c879);
+  width: 100vw;
   position: relative;
-  overflow: hidden;
+  left: 50%;
+  margin-left: -50vw;
+  min-height: calc(100vh - 72px);
+  background: #f1e6d3;
+  color: #3a2a18;
+  font-family: 'Cormorant Garamond', serif;
+  padding: 5vw 8vw 5vw;
 }
 
-.hero h1 {
+.sleeve-head {
+  border-bottom: 2px solid #3a2a18;
+  padding-bottom: 1.6rem;
+  margin-bottom: 2.6rem;
+}
+
+.sleeve-head .eyebrow {
   font-family: 'Pacifico', cursive;
-  font-weight: 400;
-  font-size: 3rem;
+  font-size: 1.15rem;
+  color: #8a5a2a;
+  margin: 0 0 0.2rem;
 }
 
-.hero::after {
-  content: '';
-  position: absolute;
-  right: -40px;
-  top: -40px;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  background: repeating-radial-gradient(circle, #2b1a0d 0 3px, transparent 3px 10px);
-  opacity: 0.3;
+.sleeve-head h1 {
+  font-size: clamp(2.8rem, 8vw, 5.4rem);
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
 }
 
-.grid .card {
-  background: #fff8ec;
-  border: 1px solid #e8b974;
-  border-radius: 22px;
+.sleeve-head .intro {
+  font-size: 1.15rem;
+  font-style: italic;
+  color: #5c4426;
+  margin: 0.6rem 0 0;
 }
 
-.grid .card h2 {
-  font-family: 'Pacifico', cursive;
-  font-weight: 400;
-  color: #7a4a1f;
+.sleeve-body {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 5vw;
 }
 
-button {
-  background: #a85a1f;
-  border-radius: 999px;
+.side h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
 }
 
-button:hover:not(:disabled) {
-  background: #7a4210;
+.side label {
+  display: block;
+  margin: 1rem 0;
+  font-size: 1rem;
+}
+
+.side input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #8a5a2a;
+  border-radius: 0;
+  padding: 0.4rem 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  color: #3a2a18;
+}
+
+.side input:focus {
+  outline: none;
+  border-color: #3a2a18;
+}
+
+.side button {
+  margin-top: 1rem;
+  background: #3a2a18;
+  color: #f1e6d3;
+  border: none;
+  border-radius: 0;
+  padding: 0.6rem 1.4rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.side button:hover:not(:disabled) {
+  background: #5c4426;
+}
+
+.side button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.side-b .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tracklist {
+  list-style: none;
+  margin: 1.2rem 0;
+  padding: 0;
 }
 
 .track {
-  border-bottom: 1px dashed #e8b974;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px dotted #8a5a2a;
+}
+
+.track .num {
+  font-variant-numeric: tabular-nums;
+  color: #8a5a2a;
+  font-size: 0.95rem;
+  width: 2ch;
+}
+
+.track .meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.track .meta b {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.track .meta small {
+  color: #6b5236;
+  font-size: 0.85rem;
+}
+
+.track .play {
+  background: none;
+  border: 1px solid #3a2a18;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  color: #3a2a18;
+  cursor: pointer;
+}
+
+.track .play:hover {
+  background: #3a2a18;
+  color: #f1e6d3;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.4rem;
+}
+
+.pager button {
+  background: none;
+  border: 1px solid #3a2a18;
+  color: #3a2a18;
+  padding: 0.4rem 0.9rem;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.pager button:disabled {
+  opacity: 0.35;
+}
+
+audio {
+  width: 100%;
+  margin-top: 1.2rem;
+}
+
+@media (max-width: 760px) {
+  .sleeve-body {
+    grid-template-columns: 1fr;
+  }
 }
