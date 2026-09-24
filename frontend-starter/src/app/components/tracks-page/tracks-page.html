@@ -30,6 +30,7 @@
               <small>{{ track.originalName }} · {{ track.size }} Ko</small>
             </span>
             <button type="button" class="play" (click)="play(track)" [attr.aria-label]="'Lire ' + track.title">▶</button>
+            <button type="button" class="delete" (click)="remove(track)" [attr.aria-label]="'Supprimer ' + track.title">✕</button>
           </li>
         } @empty {
           <p>Aucune piste.</p>

@@ -80,4 +80,16 @@ export class TracksPageComponent implements OnDestroy {
       error: (error) => console.error('[TracksPage] Lecture impossible', error),
     });
   }
+
+  remove(track: Track): void {
+    if (!confirm(`Supprimer « ${track.title} » ?`)) return;
+
+    this.service.remove(track.id).subscribe({
+      next: () => {
+        console.debug('[TracksPage] Piste supprimée', track.id);
+        this.load();
+      },
+      error: (error) => console.error('[TracksPage] Suppression impossible', error),
+    });
+  }
 }

@@ -157,6 +157,23 @@
   color: #f1e6d3;
 }
 
+.track .delete {
+  background: none;
+  border: 1px solid #8a3a2a;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  color: #8a3a2a;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.track .delete:hover {
+  background: #8a3a2a;
+  color: #f1e6d3;
+}
+
 .pager {
   display: flex;
   align-items: center;
