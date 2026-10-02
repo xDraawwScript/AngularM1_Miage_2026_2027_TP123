@@ -1,0 +1,36 @@
+/*
+ * Le calque est fixé à la fenêtre, sous la barre de navigation : la vidéo reste
+ * cadrée pendant le défilement. Le contenu de la page, placé après lui dans le
+ * HTML et positionné, s'affiche par-dessus.
+ * `container-type: size` permet de dimensionner la vidéo en unités cqw/cqh
+ * (pourcentage de la taille du calque) : elle couvre tout le calque en 16/9, comme
+ * `object-fit: cover`, quelle que soit la forme de la fenêtre.
+ */
+:host {
+  position: fixed;
+  top: var(--nav-height);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  container-type: size;
+  background: var(--red);
+}
+
+iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* Couvre le calque en 16/9, agrandi de 25 % pour rejeter hors cadre le titre
+     (en haut) et les logos YouTube (en bas), qu'on ne peut pas masquer autrement. */
+  width: max(125cqw, 222.2cqh); /* 125 % × 16/9 de la hauteur */
+  height: max(125cqh, 70.3cqw); /* 125 % × 9/16 de la largeur */
+  transform: translate(-50%, -50%);
+  border: 0;
+  /* Vidéo en noir et blanc fondue dans le rouge (« screen ») : les zones sombres
+     restent rouges, les zones claires éclaircissent. Le texte noir reste lisible. */
+  filter: grayscale(1) contrast(1.15);
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}

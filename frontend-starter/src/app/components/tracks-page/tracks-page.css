@@ -37,6 +37,10 @@ h1 {
   font-style: italic;
 }
 
+.video-toggle {
+  margin-top: 1.2rem;
+}
+
 h2 {
   margin: 0 0 1.4rem;
   font-size: 1.3rem;

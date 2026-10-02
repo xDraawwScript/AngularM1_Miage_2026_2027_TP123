@@ -8,8 +8,20 @@ import { Track } from '../../shared/models/track.model';
 import { TRACKS_PER_PAGE, TrackService } from '../../shared/services/track.service';
 import { TrackCardComponent } from '../track-card/track-card';
 import { TridentComponent } from '../trident/trident';
+import { VideoBackgroundComponent } from '../video-background/video-background';
 import { TrackUploadComponent } from '../track-upload/track-upload';
 import { FrenchPaginatorIntl } from './mat-paginator-intl-fr';
+
+const VIDEO_PREFERENCE_KEY = 'gpc_video_background';
+
+/** Fond uni par défaut ; vidéo seulement si l'utilisateur l'a choisie. */
+function readVideoPreference(): boolean {
+  try {
+    return localStorage.getItem(VIDEO_PREFERENCE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Page de la bibliothèque. Elle orchestre trois choses :
@@ -19,7 +31,14 @@ import { FrenchPaginatorIntl } from './mat-paginator-intl-fr';
  * L'envoi de fichier est dans <app-track-upload>, l'affichage d'une piste dans <app-track-card>.
  */
 @Component({
-  imports: [ReactiveFormsModule, MatPaginatorModule, TrackUploadComponent, TrackCardComponent, TridentComponent],
+  imports: [
+    ReactiveFormsModule,
+    MatPaginatorModule,
+    TrackUploadComponent,
+    TrackCardComponent,
+    TridentComponent,
+    VideoBackgroundComponent,
+  ],
   templateUrl: './tracks-page.html',
   styleUrl: './tracks-page.css',
   providers: [{ provide: MatPaginatorIntl, useClass: FrenchPaginatorIntl }],
@@ -70,6 +89,20 @@ export class TracksPageComponent implements OnDestroy {
 
   /** Permet de faire play()/pause() sans re-télécharger le fichier déjà en mémoire. */
   @ViewChild('audioPlayer') private audioPlayer?: ElementRef<HTMLAudioElement>;
+
+  // ---- Fond vidéo (décor) -------------------------------------------------
+
+  /** Fond vidéo affiché ou non ; le choix est mémorisé dans localStorage. */
+  readonly videoBackground = signal(readVideoPreference());
+
+  toggleVideoBackground(): void {
+    this.videoBackground.update((on) => !on);
+    try {
+      localStorage.setItem(VIDEO_PREFERENCE_KEY, String(this.videoBackground()));
+    } catch {
+      // Stockage indisponible (navigation privée...) : le choix vaut pour cette visite.
+    }
+  }
 
   constructor() {
     this.load();
