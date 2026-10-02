@@ -415,3 +415,33 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 **Ce que chaque membre sait maintenant expliquer sans l'agent.**
 - Pourquoi un composant "carte" ne doit pas appeler l'API : il reçoit des données (`input`) et signale des intentions (`output`) ; la page, qui connaît le contexte (quelle piste joue, quelle page est chargée), décide.
 - Pourquoi la validation vit dans une fonction pure (`validateAudioFile`) : elle se lit, se teste et se réutilise sans Angular.
+
+## Maquette Figma « Desert Sessions » (direction rock unifiée, avant implémentation)
+
+**Objectif.** Refondre le frontend avec une direction artistique unique (rouge plat + noir, inspirée de l'univers de Queens of the Stone Age) en passant d'abord par une maquette Figma validée, au lieu de coder directement.
+
+**Prompt principal.** « option deux, je veux les 4, on utilise une direction rock unifiée orientée queens of the stone age », puis « je veux dans ce thème visuel, avec le code couleur et surtout la sorte de trident/crochet de la pochette d'album ».
+
+**Outils.** Connecteur Figma (serveur MCP officiel) : création du fichier, variables de couleur, frames, composant, captures d'écran de contrôle. Fichier : https://www.figma.com/design/tbE2d77VxZh82CkPejiXq5
+
+**Décisions de design.**
+- Palette réduite à cinq variables Figma (collection « Desert ») : rouge `#D01324`, rouge profond `#A10D1A`, noir `#0A0A0A`, anthracite `#161616`, os `#F4E9DA`. Tout est lié à ces variables (aucune couleur en dur dans les fills de texte et de formes).
+- Typographie : **Pirata One** (gothique, titres et marque) + **Archivo Narrow** (interface). Un premier essai avec Big Shoulders Display / Rye a été abandonné au profit d'un lettrage gothique plus proche de l'esprit visé.
+- Motifs : un trident à fourche barbelée dessiné en vecteur (calque unique « Trident », réutilisé et pivoté sur chaque page) et une grille de points de taille dégressive.
+- Contenu des 4 pages (Connexion, Inscription, Profil, Bibliothèque) repris à l'identique de l'application, sans slogan ajouté ; la Bibliothèque utilise un vrai **composant Figma** « Track Card » (5 instances, une en état « lecture ») et une barre « En lecture ».
+
+**Point de droit d'auteur.** L'étudiant a demandé d'utiliser « le vrai trident » de la pochette. Refusé : le trident est dessiné à la main par l'agent (forme d'une lance à fourche barbelée), sans décalquer ni importer le visuel de la pochette. Le trident reste un unique calque nommé, que l'étudiant peut remplacer lui-même par un fichier de son choix.
+
+**Erreurs rencontrées et corrigées.**
+- Les conteneurs auto-layout de Figma ont un fond blanc par défaut : le premier jet affichait des blocs blancs parasites (corrigé en vidant `fills` à la création de chaque conteneur).
+- Trident trop grand : sa pointe chevauchait le formulaire, le titre et la pastille utilisateur ; redimensionné et recentré page par page.
+- Des glyphes (↻, ▶, ⏸, ✕) sont absents des polices choisies et s'affichaient en carrés : remplacés par du texte (« Charger mon profil », « Lire », « Pause », « × »). À garder en tête pour le code, où la police du navigateur peut les afficher différemment.
+- Cartes de la Bibliothèque de largeur et hauteur inégales (titres sur 1 ou 2 lignes) : largeur fixe identique et hauteur égalisée par rangée.
+
+**Vérifications réalisées.** Capture d'écran de chaque frame après construction et après chaque correction (pas de texte coupé, pas de chevauchement, alignements des cartes).
+
+**État.** Maquette seulement : aucun fichier de l'application modifié à ce stade. Implémentation Angular à faire après validation de l'étudiant.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi on valide une maquette avant de coder : changer une couleur, une taille ou une mise en page se fait en quelques secondes dans Figma, contre plusieurs fichiers CSS/HTML à retoucher dans le code.
+- Ce qu'est une variable de design (ici la palette) : une valeur nommée, définie une fois, que tous les éléments référencent, ce qui permet de changer le thème en un seul endroit.
