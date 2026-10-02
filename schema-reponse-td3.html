@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TP3 — Suppression, progression d'upload et tests</title>
+<style>
+  :root {
+    --bg: #f7f7f9;
+    --panel: #ffffff;
+    --text: #1c1c1e;
+    --muted: #5b5b63;
+    --border: #e2e2e7;
+    --blue: #2563eb;
+    --blue-bg: #eaf1ff;
+    --green: #16794f;
+    --green-bg: #e8f6ee;
+    --orange: #b3590a;
+    --orange-bg: #fdefe1;
+    --gray: #4b5563;
+    --gray-bg: #eef0f3;
+    --red: #b3261e;
+    --red-bg: #fdecea;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 16px 64px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 1.7rem; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); margin-top: 0; margin-bottom: 32px; }
+  h2 {
+    font-size: 1.25rem;
+    margin-top: 48px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+  h3 { font-size: 1.05rem; margin-top: 28px; }
+  p { margin: 10px 0; }
+  ul, ol { margin: 8px 0; padding-left: 22px; }
+  li { margin: 6px 0; }
+  code {
+    background: var(--gray-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+    font-family: "SF Mono", Consolas, monospace;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.93rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th { color: var(--muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.02em; }
+  td.file { font-family: "SF Mono", Consolas, monospace; font-size: 0.87rem; white-space: nowrap; color: var(--blue); }
+
+  .flow { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 24px 0; }
+  .step {
+    width: 100%;
+    max-width: 640px;
+    border-radius: 10px;
+    padding: 12px 18px;
+    border: 1.5px solid transparent;
+    font-size: 0.93rem;
+  }
+  .step .label { font-weight: 700; font-family: "SF Mono", Consolas, monospace; font-size: 0.85rem; }
+  .step .desc { color: var(--muted); margin-top: 3px; }
+  .step.frontend { background: var(--blue-bg); border-color: #c3d9ff; }
+  .step.frontend .label { color: var(--blue); }
+  .step.network { background: var(--gray-bg); border-color: #d7d9de; }
+  .step.network .label { color: var(--gray); }
+  .step.backend { background: var(--green-bg); border-color: #bfe6cf; }
+  .step.backend .label { color: var(--green); }
+  .arrow { color: #9c9ca6; font-size: 1.3rem; line-height: 1; margin: 2px 0; }
+
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 14px 0 4px; font-size: 0.85rem; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .dot.frontend { background: var(--blue); }
+  .dot.network { background: var(--gray); }
+  .dot.backend { background: var(--green); }
+
+  .callout {
+    background: #fff8e6;
+    border: 1px solid #f2dfa0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 0.93rem;
+  }
+  .callout strong { color: #8a6415; }
+
+  .gap {
+    background: var(--red-bg);
+    border: 1px solid #f3b6b0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 0.93rem;
+  }
+  .gap strong { color: var(--red); }
+
+  .qa {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 14px 0;
+  }
+  .qa .q { font-weight: 700; margin-bottom: 6px; }
+  .qa .q::before { content: "Q — "; color: var(--blue); }
+  .qa .a { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>TP3 — Fiabilisation et enrichissement du frontend</h1>
+  <p class="subtitle">Missions 5 (suppression), 6 (progression d'upload) et 7 (tests automatisés) : ce qui a été fait, comment ça marche, et les réponses aux questions de restitution orale.</p>
+
+  <!-- ===================================================== MISSION 5 -->
+  <h2>1. Mission 5 — Suppression d'une piste</h2>
+
+  <h3>Flux</h3>
+  <div class="flow">
+    <div class="step frontend"><div class="label">track-card.html · bouton « × »</div><div class="desc">émet <code>removeRequested</code> (la carte n'appelle jamais l'API)</div></div>
+    <div class="arrow">↓</div>
+    <div class="step frontend"><div class="label">tracks-page.ts · remove(track)</div><div class="desc">garde « déjà en cours », <code>confirm()</code>, <code>deletingId.set(id)</code></div></div>
+    <div class="arrow">↓</div>
+    <div class="step frontend"><div class="label">track.service.ts · remove(id)</div><div class="desc"><code>http.delete('/api/tracks/' + id)</code></div></div>
+    <div class="arrow">↓</div>
+    <div class="step network"><div class="label">auth.interceptor.ts</div><div class="desc">ajoute <code>Authorization: Bearer …</code> ; sur 401 déconnecte et renvoie vers /login</div></div>
+    <div class="arrow">↓</div>
+    <div class="step backend"><div class="label">DELETE /api/tracks/:id (backend/src/app.js)</div><div class="desc">middleware <code>auth</code> (JWT) puis <code>findOneAndDelete({ _id, ownerId })</code>, puis suppression du fichier sur disque</div></div>
+  </div>
+  <div class="legend">
+    <span><i class="dot frontend"></i> Frontend</span>
+    <span><i class="dot network"></i> Réseau / intercepteur</span>
+    <span><i class="dot backend"></i> Backend</span>
+  </div>
+
+  <h3>Composant et service concernés</h3>
+  <div class="card">
+    <table>
+      <tr><th>Élément</th><th>Rôle</th></tr>
+      <tr><td class="file">tracks-page.ts</td><td>Orchestre : confirmation, état <code>deletingId</code>, appel du service, notifications (<code>MatSnackBar</code>), rechargement, arrêt de la lecture.</td></tr>
+      <tr><td class="file">track-card.*</td><td>Purement visuel : input <code>deleting</code> (carte atténuée, bouton bloqué, spinner), output <code>removeRequested</code>.</td></tr>
+      <tr><td class="file">track.service.ts</td><td><code>remove(id)</code> : seul endroit qui connaît l'URL et la méthode HTTP.</td></tr>
+    </table>
+  </div>
+
+  <h3>Cas gérés</h3>
+  <div class="card">
+    <table>
+      <tr><th>Situation</th><th>Comportement</th></tr>
+      <tr><td>Confirmation refusée</td><td>Aucune requête.</td></tr>
+      <tr><td>Double clic / second clic pendant l'appel</td><td>Ignoré (<code>deletingId</code> non nul) : un seul <code>DELETE</code> part. Avant la correction, deux partaient et le second répondait 404 (reproduit).</td></tr>
+      <tr><td>Succès (204)</td><td>SnackBar « … a été supprimée », liste rechargée ; si c'était la seule piste d'une page &gt; 1, on revient à la page précédente (sinon page vide) ; si la piste jouait, la lecture est arrêtée et l'URL locale révoquée.</td></tr>
+      <tr><td>404 (supprimée dans un autre onglet, ou piste d'un autre utilisateur)</td><td>SnackBar « Cette piste n'existe plus ou ne vous appartient pas » et rechargement (la liste affichée était périmée).</td></tr>
+      <tr><td>500 (métadonnée supprimée mais fichier non supprimé)</td><td>SnackBar avec le message du serveur et rechargement.</td></tr>
+      <tr><td>Erreur réseau</td><td>SnackBar « Suppression impossible, réessayez », pas de rechargement, le bouton redevient utilisable.</td></tr>
+    </table>
+  </div>
+
+  <h3>Pourquoi le guard Angular et l'interface ne suffisent pas à sécuriser la suppression</h3>
+  <div class="callout">
+    <strong>Idée clé :</strong> tout ce qui s'exécute dans le navigateur appartient à l'utilisateur, donc peut être contourné.
+    <code>authGuard</code> ne fait que cacher des pages et le bouton « × » n'est qu'un élément HTML : avec les DevTools ou <code>curl</code>, on peut envoyer directement <code>DELETE /api/tracks/&lt;id&gt;</code>, avec un token volé ou celui d'un autre compte.
+    Seul le backend est une barrière fiable : le middleware <code>auth</code> vérifie la signature et l'expiration du JWT (401 sinon), puis la requête Mongo <code>findOneAndDelete({ _id, ownerId: req.auth.sub })</code> ne supprime que si la piste appartient à l'appelant.
+    Dans le cas contraire le serveur répond <strong>404</strong> (et non 403) pour ne pas révéler que la piste existe chez quelqu'un d'autre.
+  </div>
+
+  <!-- ===================================================== MISSION 6 -->
+  <h2>2. Mission 6 — Progression de l'upload</h2>
+
+  <h3>Les quatre états</h3>
+  <div class="card">
+    <table>
+      <tr><th><code>status</code></th><th>Quand</th><th>Interface</th></tr>
+      <tr><td class="file">idle</td><td>Pas d'envoi en cours</td><td>Formulaire actif ; « Envoyer » grisé tant qu'aucun fichier valide n'est choisi.</td></tr>
+      <tr><td class="file">uploading</td><td>Requête partie, réponse pas encore reçue</td><td>Barre + pourcentage (« Traitement… » à 100 % en attendant la réponse), titre, champ fichier et bouton désactivés, seconde soumission ignorée.</td></tr>
+      <tr><td class="file">success</td><td>Réponse 201 reçue</td><td>Message « a bien été envoyée » (4 s), formulaire vidé, la liste recharge page 1.</td></tr>
+      <tr><td class="file">error</td><td>Fichier refusé avant envoi, ou erreur HTTP</td><td>Message d'erreur du serveur ou de validation, progression remise à 0, contrôles réactivés : on peut réessayer.</td></tr>
+    </table>
+  </div>
+
+  <h3>Comment Angular calcule le pourcentage</h3>
+  <div class="card">
+    <p>Avec <code>reportUploadProgress: true</code> et <code>observe: 'events'</code>, le navigateur signale régulièrement combien d'octets de la requête sont partis. Angular émet un événement <code>HttpEventType.UploadProgress</code> avec deux champs :</p>
+    <ul>
+      <li><code>loaded</code> : octets déjà envoyés ;</li>
+      <li><code>total</code> : taille totale de la requête (peut manquer, d'où une barre indéterminée dans ce cas).</li>
+    </ul>
+    <p>Le code fait <code>Math.round(100 * loaded / total)</code>. Exemple : 50 sur 200 octets donne 25 %.</p>
+  </div>
+
+  <h3>Pourquoi un upload avec progression ne se traite pas comme une requête normale</h3>
+  <div class="callout">
+    <strong>Idée clé :</strong> un <code>http.post</code> ordinaire émet <em>une seule</em> valeur (la réponse) puis se termine. Avec la progression, l'Observable émet <em>plusieurs</em> événements de natures différentes : <code>Sent</code>, plusieurs <code>UploadProgress</code>, <code>ResponseHeader</code>, puis <code>Response</code> qui ne contient le corps qu'à ce moment-là. On ne peut donc pas lire « la première valeur » : il faut regarder <code>event.type</code> (un <code>switch</code>) pour décider quoi faire de chaque émission.
+  </div>
+
+  <h3>Piège découvert : <code>withXhr()</code></h3>
+  <div class="gap">
+    <strong>Dans Angular 22, <code>HttpClient</code> utilise <code>fetch</code> par défaut</strong>, et l'API <code>fetch</code> ne sait pas rapporter la progression d'un <em>envoi</em>. Sans correction, aucun événement <code>UploadProgress</code> n'arrive jamais : la barre resterait à 0 %. Correction dans <code>main.ts</code> : <code>provideHttpClient(withXhr(), withInterceptors([...]))</code> (retour à <code>XMLHttpRequest</code>, qui expose <code>upload.onprogress</code>). Vérifié dans le navigateur : le XHR émet bien <code>loadstart</code>, <code>progress</code> puis la réponse.
+  </div>
+  <p>En local, l'envoi d'un fichier de quelques dizaines de Mo prend environ 0,1 s : la barre passe presque instantanément de 0 à 100 %. Pour la voir avancer, limiter le débit dans les DevTools (Network → « Slow 4G »).</p>
+
+  <!-- ===================================================== MISSION 7 -->
+  <h2>3. Mission 7 — Tests automatisés</h2>
+
+  <h3>Ce qui a été mis en place</h3>
+  <div class="card">
+    <ul>
+      <li><strong>Frontend :</strong> vitest (déjà dans le projet) + <code>jsdom</code> (ajouté), <code>tsconfig.spec.json</code> (créé), <code>buildTarget</code> dans <code>angular.json</code> ; commande <code>npm test</code>. <strong>41 tests dans 7 fichiers.</strong></li>
+      <li><strong>Backend (extension facultative) :</strong> nouveau fichier <code>backend/test/security.test.js</code> (12 tests) ; avec les 2 existants, <code>npm test</code> lance 14 tests. Aucune route modifiée.</li>
+      <li>Les specs sont exclues du build de production (<code>tsconfig.app.json</code>), sinon <code>npm run build</code> échouait.</li>
+    </ul>
+  </div>
+
+  <h3>Fichiers de tests frontend</h3>
+  <div class="card">
+    <table>
+      <tr><th>Fichier</th><th>Ce qu'il vérifie</th></tr>
+      <tr><td class="file">auth.service.spec.ts</td><td><code>login()</code> = <code>POST /api/auth/login</code> avec <code>{email,password}</code> ; token mémorisé (signal + <code>localStorage</code>) ; rien mémorisé sur 401 ; <code>register()</code>, <code>profile()</code>, <code>logout()</code>.</td></tr>
+      <tr><td class="file">track.service.spec.ts</td><td><code>list()</code> envoie <code>page</code> et <code>limit</code> ; <code>remove()</code> = <code>DELETE /api/tracks/:id</code> ; <code>upload()</code> = <code>FormData</code> (<code>audio</code>, <code>title</code>) avec progression ; <code>audio()</code> en blob.</td></tr>
+      <tr><td class="file">auth.interceptor.spec.ts</td><td>En-tête <code>Authorization: Bearer …</code> seulement avec token ; 401 → déconnexion + redirection <code>/login</code> ; 404 sans déconnexion.</td></tr>
+      <tr><td class="file">auth.guard.spec.ts</td><td><code>true</code> avec token ; <code>UrlTree</code> vers <code>/login</code> sans token et après déconnexion.</td></tr>
+      <tr><td class="file">audio-file.spec.ts</td><td>Format refusé, &gt; 25 Mo refusé, 25 Mo accepté, libellés.</td></tr>
+      <tr><td class="file">tracks-page.spec.ts</td><td>Chargement, erreur HTTP affichée, suppression (DELETE + rechargement + notification), confirmation refusée, double clic, 404, erreur réseau, dernière piste d'une page, piste en lecture supprimée.</td></tr>
+      <tr><td class="file">track-upload.spec.ts</td><td>États idle/uploading/success/error, pourcentage, progression indéterminée, contrôles bloqués, double soumission, retour à idle après 4 s, échec HTTP.</td></tr>
+    </table>
+  </div>
+
+  <h3>Contrôle de qualité : les tests savent-ils échouer ?</h3>
+  <div class="card">
+    <p>Pour prouver que les tests ne « passent » pas par hasard, le code a été cassé volontairement puis restauré :</p>
+    <table>
+      <tr><th>Faute introduite</th><th>Résultat</th></tr>
+      <tr><td>Intercepteur qui n'ajoute plus l'en-tête</td><td>1 test échoue</td></tr>
+      <tr><td>Garde anti double clic supprimée</td><td>le test « double clic » échoue</td></tr>
+      <tr><td>Mauvais calcul du pourcentage</td><td>le test du pourcentage échoue</td></tr>
+      <tr><td>Guard qui laisse tout passer</td><td>2 tests échouent</td></tr>
+      <tr><td>Backend : <code>ownerId</code> retiré du filtre de <code>DELETE</code></td><td>le test « piste d'un autre utilisateur » échoue</td></tr>
+    </table>
+  </div>
+
+  <!-- ===================================================== ORAL -->
+  <h2>4. Questions de restitution orale</h2>
+
+  <div class="qa"><div class="q">Pourquoi la suppression passe-t-elle par un service ?</div>
+    <div class="a">Le composant s'occupe de l'interface (confirmer, griser, notifier) ; l'URL et la méthode HTTP vivent à un seul endroit, <code>TrackService.remove()</code>. Cela évite de dupliquer les appels, permet de tester le composant et le service séparément, et laisse l'intercepteur ajouter le JWT à tous les appels sans que le composant s'en occupe. Un composant qui injecte <code>HttpClient</code> mélange affichage et accès aux données.</div></div>
+
+  <div class="qa"><div class="q">Comment le backend protège-t-il la suppression ?</div>
+    <div class="a">En deux temps : le middleware <code>auth</code> vérifie la signature et l'expiration du JWT (sinon 401), puis la requête <code>findOneAndDelete({ _id, ownerId: req.auth.sub })</code> n'efface que la piste appartenant à l'utilisateur du token. Une piste inconnue ou appartenant à un autre donne 404 (on ne révèle pas son existence). Le propriétaire vient du JWT vérifié, jamais d'un paramètre envoyé par le client.</div></div>
+
+  <div class="qa"><div class="q">Comment Angular calcule-t-il le pourcentage d'upload ?</div>
+    <div class="a">Avec <code>reportUploadProgress</code> et <code>observe: 'events'</code>, il émet des événements <code>UploadProgress</code> contenant <code>loaded</code> (octets envoyés) et <code>total</code> ; on calcule <code>Math.round(100 * loaded / total)</code>. Cela suppose XMLHttpRequest (<code>withXhr()</code>) car <code>fetch</code>, le défaut d'Angular 22, ne rapporte pas la progression d'envoi. Si <code>total</code> est absent, la barre est indéterminée.</div></div>
+
+  <div class="qa"><div class="q">Pourquoi les tests HTTP n'ont-ils pas besoin de MongoDB ?</div>
+    <div class="a">Côté Angular, <code>HttpTestingController</code> remplace le réseau : aucune requête ne sort, le test vérifie ce que le code <em>envoie</em> (URL, méthode, paramètres, en-têtes, corps) puis fabrique la réponse avec <code>flush()</code>. Il n'y a ni serveur ni base. Côté backend, les refus (401, 400) arrivent avant tout accès à la base, et pour la pagination et la propriété des pistes, les méthodes du modèle <code>Track</code> sont remplacées par des mocks qui enregistrent leurs arguments.</div></div>
+
+  <div class="qa"><div class="q">Que vérifie un test d'intercepteur ou de guard ?</div>
+    <div class="a">Intercepteur : la requête <em>sortante</em> porte bien <code>Authorization: Bearer &lt;token&gt;</code> quand un token existe et rien sinon, et une réponse 401 déclenche déconnexion + redirection vers <code>/login</code> en propageant l'erreur. Guard : sa valeur de retour, <code>true</code> avec un token, un <code>UrlTree</code> vers <code>/login</code> sans token.</div></div>
+
+  <div class="qa"><div class="q">Quelle différence entre un test unitaire et un test d'intégration ?</div>
+    <div class="a">Un test unitaire isole une pièce (une fonction, un service) et simule tout le reste : <code>track.service.spec.ts</code>, <code>audio-file.spec.ts</code>. Un test d'intégration fait travailler plusieurs pièces ensemble : <code>tracks-page.spec.ts</code> combine composant, service, <code>HttpClient</code> et réponses HTTP simulées ; <code>security.test.js</code> envoie de vraies requêtes à l'application Express (routes, middleware, validation) en ne simulant que la base. Le premier localise vite la panne, le second vérifie que les pièces s'emboîtent.</div></div>
+
+  <h2>5. Limites connues</h2>
+  <div class="gap">
+    <strong>À savoir :</strong> en local, la progression d'upload saute presque d'un coup à 100 % (réseau trop rapide) ; la suppression ne gère pas les suppressions en lot ; les captures Network des DevTools doivent être prises à la main (voir <code>preuves/README.md</code>).
+  </div>
+
+</div>
+</body>
+</html>

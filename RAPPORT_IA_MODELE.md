@@ -597,3 +597,15 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 - **Défaut CSS trouvé grâce aux captures :** la carte en cours de suppression n'était pas atténuée. L'animation d'apparition (`animation: … both`) conserve `opacity: 1` à la fin et écrase l'opacité de la classe `.deleting`. Correction : `animation: none` sur `.track-card.deleting` (même piège que celui déjà rencontré avec `transform`).
 - Les bandeaux (SnackBar 4 s, message de succès 4 s) peuvent disparaître avant la capture : l'état « upload réussi » est donc montré par la nouvelle piste en tête de liste.
 - L'émulation mobile du navigateur intégré produit des images inexploitables (page rendue minuscule) : la vérification mobile se fait par mesure (`scrollWidth` = 375, aucune erreur de débordement) et non par capture.
+
+## Documents TP3 (réponses orales et rapport de tests)
+
+**Objectif.** Livrer les documents demandés par le sujet : rapport de tests avec résultats attendus et observés, et réponses aux questions de restitution orale.
+
+**Ce qui a été fait.**
+- `RAPPORT_TESTS_TP3.md` : synthèse (frontend 41/41, backend 14/14, build OK), tableaux « test / attendu / observé » par fichier de test, contrôle par mutation manuelle, vérifications manuelles dans le navigateur, et section « ce qui n'est pas couvert ». Les résultats viennent d'une exécution finale réelle des trois commandes (`npm test` frontend avec reporter détaillé, `npm test` backend, `npm run build`).
+- `schema-reponse-td3.html` (même gabarit que td1 et td2) : schéma du flux de suppression, tableau des cas gérés, états de l'upload, calcul du pourcentage, piège `withXhr()`, liste des tests, et réponses rédigées aux six questions de restitution orale.
+- `ANTISECHE-SOUTENANCE.md` (ignoré par Git) mis à jour avec une section TP3.
+- `preuves/README.md` : tableau des 14 captures et étapes pour les deux captures Network à prendre à la main.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.** Les six questions de la restitution orale (voir `schema-reponse-td3.html`) : pourquoi la suppression passe par un service ; comment le backend protège la suppression ; comment Angular calcule le pourcentage ; pourquoi les tests HTTP n'ont pas besoin de MongoDB ; ce que vérifie un test d'intercepteur ou de guard ; différence test unitaire / test d'intégration.
