@@ -118,6 +118,19 @@
   margin: 1rem 0;
 }
 
+.success {
+  color: #2f6b3c;
+  font-weight: 600;
+  margin: 0.8rem 0;
+  animation: fadeInUp 0.3s ease both;
+}
+
+.now-playing {
+  margin: 1.2rem 0 0;
+  font-size: 0.95rem;
+  color: #5c4426;
+}
+
 .upload-progress {
   display: flex;
   align-items: center;

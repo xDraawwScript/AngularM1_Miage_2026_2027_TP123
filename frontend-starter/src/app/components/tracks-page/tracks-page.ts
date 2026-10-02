@@ -50,9 +50,12 @@ export class TracksPageComponent implements OnDestroy {
   readonly error = signal('');
   readonly audioUrl = signal('');
   readonly currentTrackId = signal<string | null>(null);
+  readonly currentTitle = signal('');
   readonly isPlaying = signal(false);
+  readonly playbackError = signal('');
   readonly title = new FormControl('', { nonNullable: true });
   readonly uploadError = signal('');
+  readonly uploadSuccess = signal('');
   readonly uploadProgress = signal<number | null>(null);
   file?: File;
 
@@ -168,6 +171,7 @@ export class TracksPageComponent implements OnDestroy {
 
     this.uploadProgress.set(0);
     this.uploadError.set('');
+    this.uploadSuccess.set('');
     this.service.upload(this.file, this.title.value || this.file.name).subscribe({
       next: (event) => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
@@ -175,6 +179,8 @@ export class TracksPageComponent implements OnDestroy {
         } else if (event.type === HttpEventType.Response) {
           console.debug('[TracksPage] Piste envoyée', event.body?.id);
           this.uploadProgress.set(null);
+          this.uploadSuccess.set(`« ${event.body?.title ?? 'Piste'} » a bien été envoyée.`);
+          setTimeout(() => this.uploadSuccess.set(''), 4000);
           this.title.setValue('');
           this.file = undefined;
           if (this.fileInput) this.fileInput.nativeElement.value = '';
@@ -200,6 +206,8 @@ export class TracksPageComponent implements OnDestroy {
     }
 
     this.currentTrackId.set(track.id);
+    this.currentTitle.set(track.title);
+    this.playbackError.set('');
     this.service.audio(track.id).subscribe({
       next: (blob) => {
         console.debug('[TracksPage] Audio chargé', track.id);
@@ -210,6 +218,8 @@ export class TracksPageComponent implements OnDestroy {
       error: (error) => {
         console.error('[TracksPage] Lecture impossible', error);
         this.currentTrackId.set(null);
+        this.currentTitle.set('');
+        this.playbackError.set(`Impossible de charger « ${track.title} » (serveur indisponible ou accès refusé).`);
       },
     });
   }
@@ -220,6 +230,12 @@ export class TracksPageComponent implements OnDestroy {
 
   onAudioPause(): void {
     this.isPlaying.set(false);
+  }
+
+  /** Le Blob est arrivé mais le navigateur n'a pas pu le décoder (fichier corrompu, format non lisible). */
+  onAudioError(): void {
+    this.isPlaying.set(false);
+    this.playbackError.set(`Le fichier « ${this.currentTitle()} » n'a pas pu être lu par le navigateur.`);
   }
 
   remove(track: Track): void {
