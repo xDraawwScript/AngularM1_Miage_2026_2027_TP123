@@ -560,3 +560,5 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 - Pourquoi ces tests n'ont pas besoin de MongoDB : `HttpTestingController` remplace le réseau, le code croit parler à un serveur mais la réponse est fabriquée par le test.
 - Ce que vérifie un test d'intercepteur (la requête sortante a le bon en-tête, et un 401 déclenche déconnexion + redirection) et de guard (la valeur de retour : `true` ou un `UrlTree` vers `/login`).
 - La différence entre test unitaire (un service ou une fonction isolé : `track.service.spec.ts`) et test d'intégration (plusieurs pièces ensemble : `tracks-page.spec.ts` fait travailler composant, service et HTTP simulé).
+
+**Piège rencontré (build cassé par les tests).** `tsconfig.app.json` inclut `src/**/*.ts`, donc le build de production compilait aussi les fichiers `*.spec.ts` sans connaître `describe`/`it`/`expect` (types `vitest/globals` seulement dans `tsconfig.spec.json`) : `npm run build` échouait. Correction : `"exclude": ["src/**/*.spec.ts"]` dans `tsconfig.app.json`. Résultat après correction : `npm run build` OK (main.js 480,64 kB brut, 96,36 kB transférés) et `npm test` toujours 41/41.
