@@ -391,3 +391,27 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 
 **Ce que chaque membre sait maintenant expliquer sans l'agent.**
 - La différence entre une erreur **HTTP** lors de la récupération du Blob (le fichier n'est jamais arrivé) et une erreur **de décodage** de l'élément `<audio>` (le fichier est arrivé mais illisible) : deux événements, deux messages.
+
+## Refactorisation de la page bibliothèque (lisibilité)
+
+**Objectif.** Rendre le code défendable à l'oral : `tracks-page.ts` faisait ~250 lignes et mélangeait cinq responsabilités (pagination, upload et validation, lecture, filtre, formatage).
+
+**Prompt principal.** « oui fais le découpage, utilise du code compréhensible et push » (en réponse à la proposition d'extraire les formateurs et de réorganiser le composant).
+
+**Plan et décisions.** Découpage par responsabilité, sans changer le comportement :
+- `shared/utils/audio-file.ts` : **une seule** liste des formats (type MIME → libellé) à la place de deux copies (`ALLOWED_AUDIO_TYPES` et la table de libellés), la taille maximale, `validateAudioFile()` qui retourne le message d'erreur ou `null`, `audioFormatLabel()`.
+- `shared/utils/track-format.ts` : `formatSize()` et `formatDate()`, fonctions pures.
+- `components/track-upload/` : tout l'envoi (choix, validation, progression, succès/erreur, vidage du formulaire). Il prévient la page par un événement `(uploaded)` et ne connaît pas la liste.
+- `components/track-card/` : composant purement visuel (entrées `track`/`playing`, sorties `playRequested`/`removeRequested`), n'appelle jamais l'API.
+- `tracks-page.ts` (~175 lignes, commentées par sections) : liste paginée, filtre, lecture audio, suppression.
+- Nettoyage au passage : suppression du CSS mort de l'ancien pager, et de l'état `file` mutable remplacé par un signal ; la progression d'upload est séparée en `uploading` (booléen) et `progress` (0–100) au lieu d'un `number | null` ambigu (0 % était « faux » dans le template).
+
+**Vérifications réalisées (serveurs réels).** Même scénario qu'avant le découpage : validation format et taille (messages et bouton désactivé), upload d'un faux mp3 (succès, formulaire et champ fichier vidés, retour page 1, total 6 → 7), erreur de décodage audio, lecture → pause → reprise, bouton « Pause » seulement sur la piste en cours, filtre et « aucun résultat », suppression avec rafraîchissement ; capture d'écran comparée à l'état précédent (rendu identique malgré la répartition du CSS sur trois fichiers). Piste de test supprimée ensuite.
+
+**Piège rencontré.** Une carte étant désormais dans son propre composant, le sélecteur `.track-card:nth-child(n)` (apparition en cascade) ne marche plus (la carte est seule dans son composant) : remplacé par `:host(:nth-child(n)) .track-card`, car c'est l'élément hôte qui connaît sa place dans la grille.
+
+**Documents mis à jour.** `schema-reponse-td2.html` (les fichiers/méthodes cités avaient changé : `choose()` et `upload()` sont dans `track-upload.ts`, et les deux « manques identifiés » sont maintenant marqués comme corrigés).
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi un composant "carte" ne doit pas appeler l'API : il reçoit des données (`input`) et signale des intentions (`output`) ; la page, qui connaît le contexte (quelle piste joue, quelle page est chargée), décide.
+- Pourquoi la validation vit dans une fonction pure (`validateAudioFile`) : elle se lit, se teste et se réutilise sans Angular.

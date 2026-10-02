@@ -8,27 +8,7 @@
   <div class="sleeve-body">
     <article class="side side-a">
       <h2>Importer</h2>
-      <label>Titre<input [formControl]="title" /></label>
-      <label>Fichier audio<input #fileInput type="file" accept="audio/*" (change)="choose($event)" /></label>
-      @if (uploadError()) {
-        <p class="error">{{ uploadError() }}</p>
-      }
-      @if (uploadSuccess()) {
-        <p class="success" role="status">✓ {{ uploadSuccess() }}</p>
-      }
-      @if (uploadProgress(); as progress) {
-        <div class="upload-progress">
-          <progress [value]="progress" max="100"></progress>
-          <span>{{ progress }}%</span>
-        </div>
-      }
-      <button type="button" (click)="upload()" [disabled]="!file || uploadProgress() !== null">
-        @if (uploadProgress() !== null) {
-          <span class="spinner"></span> Envoi…
-        } @else {
-          Envoyer
-        }
-      </button>
+      <app-track-upload (uploaded)="load(1)" />
     </article>
 
     <article class="side side-b">
@@ -42,10 +22,13 @@
           }
         </button>
       </div>
+
       <input class="filter-input" [formControl]="filterTitle" placeholder="Filtrer par titre…" />
+
       @if (error()) {
         <p class="error">{{ error() }}</p>
       }
+
       <div class="cards">
         @if (loading() && tracks().length === 0) {
           <div class="skeleton-card"></div>
@@ -53,23 +36,12 @@
           <div class="skeleton-card"></div>
         }
         @for (track of filteredTracks(); track track.id) {
-          <article class="track-card">
-            <h3>{{ track.title }}</h3>
-            <p class="original">{{ track.originalName }}</p>
-            <dl class="specs">
-              <div><dt>Format</dt><dd>{{ formatType(track.mimeType) }}</dd></div>
-              <div><dt>Taille</dt><dd>{{ formatSize(track.size) }}</dd></div>
-              <div><dt>Ajouté le</dt><dd>{{ formatDate(track.createdAt) }}</dd></div>
-            </dl>
-            <div class="track-actions">
-              @if (currentTrackId() === track.id && isPlaying()) {
-                <button type="button" class="play" (click)="play(track)" [attr.aria-label]="'Mettre en pause ' + track.title">⏸ Pause</button>
-              } @else {
-                <button type="button" class="play" (click)="play(track)" [attr.aria-label]="'Lire ' + track.title">▶ Lire</button>
-              }
-              <button type="button" class="delete" (click)="remove(track)" [attr.aria-label]="'Supprimer ' + track.title">✕</button>
-            </div>
-          </article>
+          <app-track-card
+            [track]="track"
+            [playing]="isPlayingTrack(track)"
+            (playRequested)="play($event)"
+            (removeRequested)="remove($event)"
+          />
         } @empty {
           @if (tracks().length > 0) {
             <p>Aucun résultat pour ce filtre.</p>
@@ -78,6 +50,7 @@
           }
         }
       </div>
+
       <mat-paginator
         [length]="total()"
         [pageSize]="5"
@@ -87,12 +60,22 @@
         (page)="onPageEvent($event)"
         aria-label="Choisir une page de pistes"
       ></mat-paginator>
+
       @if (playbackError()) {
         <p class="error" role="alert">{{ playbackError() }}</p>
       }
       @if (audioUrl()) {
         <p class="now-playing">En lecture : <b>{{ currentTitle() }}</b></p>
-        <audio #audioPlayer [src]="audioUrl()" controls autoplay (play)="onAudioPlay()" (pause)="onAudioPause()" (ended)="onAudioPause()" (error)="onAudioError()"></audio>
+        <audio
+          #audioPlayer
+          [src]="audioUrl()"
+          controls
+          autoplay
+          (play)="onAudioPlay()"
+          (pause)="onAudioPause()"
+          (ended)="onAudioPause()"
+          (error)="onAudioError()"
+        ></audio>
       }
     </article>
   </div>

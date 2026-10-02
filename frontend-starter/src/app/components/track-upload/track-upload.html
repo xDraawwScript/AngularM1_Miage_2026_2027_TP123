@@ -1,0 +1,23 @@
+<label>Titre<input [formControl]="title" /></label>
+<label>Fichier audio<input type="file" accept="audio/*" (change)="choose($event)" /></label>
+
+@if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+}
+@if (success()) {
+  <p class="success" role="status">✓ {{ success() }}</p>
+}
+@if (uploading()) {
+  <div class="upload-progress">
+    <progress [value]="progress()" max="100"></progress>
+    <span>{{ progress() }}%</span>
+  </div>
+}
+
+<button type="button" (click)="upload()" [disabled]="!file() || uploading()">
+  @if (uploading()) {
+    <span class="spinner"></span> Envoi…
+  } @else {
+    Envoyer
+  }
+</button>

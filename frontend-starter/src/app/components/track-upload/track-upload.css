@@ -1,0 +1,75 @@
+:host {
+  display: block;
+}
+
+label {
+  display: block;
+  margin: 1rem 0;
+  font-size: 1rem;
+}
+
+input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #8a5a2a;
+  border-radius: 0;
+  padding: 0.4rem 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  color: #3a2a18;
+}
+
+input:focus {
+  outline: none;
+  border-color: #3a2a18;
+}
+
+button {
+  margin-top: 1rem;
+  background: #3a2a18;
+  color: #f1e6d3;
+  border: none;
+  border-radius: 0;
+  padding: 0.6rem 1.4rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: #5c4426;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.success {
+  color: #2f6b3c;
+  font-weight: 600;
+  margin: 0.8rem 0;
+  animation: fadeInUp 0.3s ease both;
+}
+
+.upload-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.8rem 0;
+}
+
+.upload-progress progress {
+  flex: 1;
+  height: 8px;
+  accent-color: #3a2a18;
+}
+
+.upload-progress span {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+  color: #5c4426;
+  min-width: 3ch;
+}

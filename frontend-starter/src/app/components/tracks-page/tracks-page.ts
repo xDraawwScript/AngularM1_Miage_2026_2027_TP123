@@ -1,25 +1,22 @@
 import { Component, computed, ElementRef, inject, OnDestroy, signal, ViewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { HttpEventType } from '@angular/common/http';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Track } from '../../shared/models/track.model';
 import { TrackService } from '../../shared/services/track.service';
+import { TrackCardComponent } from '../track-card/track-card';
+import { TrackUploadComponent } from '../track-upload/track-upload';
 import { FrenchPaginatorIntl } from './mat-paginator-intl-fr';
 
-/** Miroir des contrôles déjà appliqués côté backend (backend/src/app.js). */
-const ALLOWED_AUDIO_TYPES = new Set([
-  'audio/mpeg',
-  'audio/wav',
-  'audio/x-wav',
-  'audio/ogg',
-  'audio/mp4',
-  'audio/x-m4a',
-]);
-const MAX_FILE_SIZE = 25 * 1024 * 1024;
-
+/**
+ * Page de la bibliothèque. Elle orchestre trois choses :
+ *  - la liste paginée (chargée depuis le serveur, page par page) et son filtre ;
+ *  - la lecture audio d'une piste à la fois ;
+ *  - la suppression.
+ * L'envoi de fichier est dans <app-track-upload>, l'affichage d'une piste dans <app-track-card>.
+ */
 @Component({
-  imports: [ReactiveFormsModule, MatPaginatorModule],
+  imports: [ReactiveFormsModule, MatPaginatorModule, TrackUploadComponent, TrackCardComponent],
   templateUrl: './tracks-page.html',
   styleUrl: './tracks-page.css',
   providers: [{ provide: MatPaginatorIntl, useClass: FrenchPaginatorIntl }],
@@ -27,47 +24,46 @@ const MAX_FILE_SIZE = 25 * 1024 * 1024;
 export class TracksPageComponent implements OnDestroy {
   private readonly service = inject(TrackService);
 
-  /**
-   * mat-paginator gère un état interne à lui (il avance visuellement dès le clic,
-   * avant même la réponse du serveur) : contrairement à nos anciens boutons faits
-   * main, rebinder `[pageIndex]` avec la même valeur qu'avant ne suffit pas à le
-   * faire revenir en arrière si Angular ne détecte aucun changement de valeur.
-   * D'où la resynchronisation manuelle dans le callback d'erreur de `load()`.
-   */
-  @ViewChild(MatPaginator) private paginator?: MatPaginator;
-
-  /** Pour vider l'affichage natif de l'input file après un envoi réussi. */
-  @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
-
-  /** Pour piloter play()/pause() sans re-télécharger le Blob déjà en mémoire. */
-  @ViewChild('audioPlayer') private audioPlayer?: ElementRef<HTMLAudioElement>;
+  // ---- Liste et pagination ------------------------------------------------
 
   readonly tracks = signal<Track[]>([]);
+  /** Page affichée, à partir de 1. */
   readonly page = signal(1);
   readonly pages = signal(1);
+  /** Nombre total de pistes (toutes pages confondues) : c'est ce dont mat-paginator a besoin. */
   readonly total = signal(0);
   readonly loading = signal(false);
   readonly error = signal('');
-  readonly audioUrl = signal('');
-  readonly currentTrackId = signal<string | null>(null);
-  readonly currentTitle = signal('');
-  readonly isPlaying = signal(false);
-  readonly playbackError = signal('');
-  readonly title = new FormControl('', { nonNullable: true });
-  readonly uploadError = signal('');
-  readonly uploadSuccess = signal('');
-  readonly uploadProgress = signal<number | null>(null);
-  file?: File;
+
+  /**
+   * mat-paginator avance visuellement dès le clic, avant la réponse du serveur.
+   * Si la requête échoue, `page` ne change pas et Angular ne lui renvoie donc pas
+   * l'ancienne valeur : on la lui remet à la main dans `load()` (cas d'erreur).
+   */
+  @ViewChild(MatPaginator) private paginator?: MatPaginator;
+
+  // ---- Filtre par titre (côté client, sur la page affichée) ---------------
 
   readonly filterTitle = new FormControl('', { nonNullable: true });
   private readonly filterValue = toSignal(this.filterTitle.valueChanges, { initialValue: '' });
 
-  /** Filtre côté client, sur la page actuellement chargée (pas de nouvelle route serveur). */
   readonly filteredTracks = computed(() => {
     const query = this.filterValue().trim().toLowerCase();
     if (!query) return this.tracks();
     return this.tracks().filter((track) => track.title.toLowerCase().includes(query));
   });
+
+  // ---- Lecture audio ------------------------------------------------------
+
+  /** URL locale (blob:...) du morceau chargé en mémoire ; vide tant qu'aucun n'est lu. */
+  readonly audioUrl = signal('');
+  readonly currentTrackId = signal<string | null>(null);
+  readonly currentTitle = signal('');
+  readonly isPlaying = signal(false);
+  readonly playbackError = signal('');
+
+  /** Permet de faire play()/pause() sans re-télécharger le fichier déjà en mémoire. */
+  @ViewChild('audioPlayer') private audioPlayer?: ElementRef<HTMLAudioElement>;
 
   constructor() {
     document.body.classList.add('theme-fleetwood');
@@ -76,74 +72,21 @@ export class TracksPageComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     document.body.classList.remove('theme-fleetwood');
+    // Libère le morceau gardé en mémoire (voir `play`).
     const url = this.audioUrl();
     if (url) URL.revokeObjectURL(url);
   }
 
   /**
-   * Miroir des vérifications déjà faites côté backend (format + taille) : un
-   * retour instantané ici améliore l'expérience, mais ne dispense jamais le
-   * serveur de refaire exactement les mêmes contrôles de son côté.
-   */
-  choose(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const selected = input.files?.[0];
-    this.uploadError.set('');
-    this.file = undefined;
-
-    if (!selected) return;
-
-    if (!ALLOWED_AUDIO_TYPES.has(selected.type)) {
-      this.uploadError.set('Format non accepté (MP3, WAV, OGG ou M4A uniquement).');
-      input.value = '';
-      return;
-    }
-
-    if (selected.size > MAX_FILE_SIZE) {
-      this.uploadError.set('Fichier trop volumineux (25 Mo maximum).');
-      input.value = '';
-      return;
-    }
-
-    this.file = selected;
-    console.debug('[TracksPage] Fichier sélectionné', this.file.name);
-  }
-
-  formatSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} o`;
-    const kb = bytes / 1024;
-    if (kb < 1024) return `${kb.toFixed(1)} Ko`;
-    return `${(kb / 1024).toFixed(1)} Mo`;
-  }
-
-  formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-  }
-
-  /** Nom de format lisible à partir du mimetype (mêmes types que ALLOWED_AUDIO_TYPES). */
-  formatType(mimeType: string): string {
-    const labels: Record<string, string> = {
-      'audio/mpeg': 'MP3',
-      'audio/wav': 'WAV',
-      'audio/x-wav': 'WAV',
-      'audio/ogg': 'OGG',
-      'audio/mp4': 'M4A',
-      'audio/x-m4a': 'M4A',
-    };
-    return labels[mimeType] ?? mimeType;
-  }
-
-  /**
-   * `targetPage` n'est écrit dans le signal `page` qu'après succès de la requête :
-   * en cas d'échec, l'étiquette de pagination affichée reste cohérente avec les
-   * pistes réellement affichées (pas de "Page 2" avec le contenu de la page 1).
+   * Charge une page de pistes depuis le serveur.
+   * `page` n'est mis à jour qu'après succès : en cas d'échec, le numéro de page
+   * affiché reste cohérent avec les pistes réellement affichées.
    */
   load(targetPage = this.page()): void {
     this.loading.set(true);
     this.error.set('');
     this.service.list(targetPage).subscribe({
       next: (response) => {
-        console.debug('[TracksPage] Pistes chargées', response.items.length);
         this.tracks.set(response.items);
         this.pages.set(response.pages);
         this.total.set(response.total);
@@ -154,49 +97,26 @@ export class TracksPageComponent implements OnDestroy {
         console.error('[TracksPage] Chargement impossible', error);
         this.error.set(error.error?.message ?? 'Impossible de charger la bibliothèque');
         this.loading.set(false);
-        if (this.paginator) {
-          this.paginator.pageIndex = this.page() - 1;
-        }
+        if (this.paginator) this.paginator.pageIndex = this.page() - 1;
       },
     });
   }
 
-  /** mat-paginator est indexé à partir de 0, l'appli à partir de 1. */
+  /** mat-paginator compte les pages à partir de 0, l'appli à partir de 1. */
   onPageEvent(event: PageEvent): void {
     this.load(event.pageIndex + 1);
   }
 
-  upload(): void {
-    if (!this.file || this.uploadProgress() !== null) return;
-
-    this.uploadProgress.set(0);
-    this.uploadError.set('');
-    this.uploadSuccess.set('');
-    this.service.upload(this.file, this.title.value || this.file.name).subscribe({
-      next: (event) => {
-        if (event.type === HttpEventType.UploadProgress && event.total) {
-          this.uploadProgress.set(Math.round((100 * event.loaded) / event.total));
-        } else if (event.type === HttpEventType.Response) {
-          console.debug('[TracksPage] Piste envoyée', event.body?.id);
-          this.uploadProgress.set(null);
-          this.uploadSuccess.set(`« ${event.body?.title ?? 'Piste'} » a bien été envoyée.`);
-          setTimeout(() => this.uploadSuccess.set(''), 4000);
-          this.title.setValue('');
-          this.file = undefined;
-          if (this.fileInput) this.fileInput.nativeElement.value = '';
-          this.load(1);
-        }
-      },
-      error: (error: { error?: { message?: string } }) => {
-        console.error('[TracksPage] Envoi impossible', error);
-        this.uploadProgress.set(null);
-        this.uploadError.set(error.error?.message ?? "Échec de l'envoi, réessayez.");
-      },
-    });
+  isPlayingTrack(track: Track): boolean {
+    return this.currentTrackId() === track.id && this.isPlaying();
   }
 
-  /** Piste déjà chargée : bascule play/pause sur l'élément audio existant, sans
-   *  refaire de requête. Piste différente : télécharge son Blob comme avant. */
+  /**
+   * Piste déjà chargée : bascule lecture/pause sur le lecteur existant.
+   * Autre piste : télécharge son fichier (Blob) via HttpClient, ce qui envoie le JWT
+   * (une URL mise directement dans `src` n'aurait pas ce header), puis le joue
+   * grâce à une URL locale créée avec URL.createObjectURL.
+   */
   play(track: Track): void {
     if (this.currentTrackId() === track.id && this.audioPlayer) {
       const player = this.audioPlayer.nativeElement;
@@ -208,9 +128,10 @@ export class TracksPageComponent implements OnDestroy {
     this.currentTrackId.set(track.id);
     this.currentTitle.set(track.title);
     this.playbackError.set('');
+
     this.service.audio(track.id).subscribe({
       next: (blob) => {
-        console.debug('[TracksPage] Audio chargé', track.id);
+        // On libère l'ancien fichier de la mémoire avant d'en garder un nouveau.
         const previousUrl = this.audioUrl();
         if (previousUrl) URL.revokeObjectURL(previousUrl);
         this.audioUrl.set(URL.createObjectURL(blob));
@@ -224,6 +145,8 @@ export class TracksPageComponent implements OnDestroy {
     });
   }
 
+  // Événements du lecteur : ils gardent `isPlaying` fidèle à l'état réel, y compris
+  // quand l'utilisateur met en pause avec les contrôles natifs ou que la piste se termine.
   onAudioPlay(): void {
     this.isPlaying.set(true);
   }
@@ -232,20 +155,19 @@ export class TracksPageComponent implements OnDestroy {
     this.isPlaying.set(false);
   }
 
-  /** Le Blob est arrivé mais le navigateur n'a pas pu le décoder (fichier corrompu, format non lisible). */
+  /** Le fichier est arrivé mais le navigateur n'arrive pas à le décoder (fichier corrompu...). */
   onAudioError(): void {
     this.isPlaying.set(false);
     this.playbackError.set(`Le fichier « ${this.currentTitle()} » n'a pas pu être lu par le navigateur.`);
   }
 
+  // ---- Suppression --------------------------------------------------------
+
   remove(track: Track): void {
     if (!confirm(`Supprimer « ${track.title} » ?`)) return;
 
     this.service.remove(track.id).subscribe({
-      next: () => {
-        console.debug('[TracksPage] Piste supprimée', track.id);
-        this.load();
-      },
+      next: () => this.load(),
       error: (error) => console.error('[TracksPage] Suppression impossible', error),
     });
   }

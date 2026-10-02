@@ -141,8 +141,8 @@
   <div class="card">
     <table>
       <tr><th>Étape</th><th>Fichier</th><th>Méthode / élément</th></tr>
-      <tr><td>Choix du fichier</td><td class="file">tracks-page.html</td><td><code>&lt;input type="file"&gt;</code> avec <code>(change)="choose($event)"</code></td></tr>
-      <tr><td>Stockage du fichier choisi</td><td class="file">tracks-page.ts</td><td><code>choose(event)</code> → <code>this.file = event.target.files[0]</code></td></tr>
+      <tr><td>Choix du fichier</td><td class="file">track-upload.html</td><td><code>&lt;input type="file"&gt;</code> avec <code>(change)="choose($event)"</code></td></tr>
+      <tr><td>Validation et stockage du fichier choisi</td><td class="file">track-upload.ts</td><td><code>choose(event)</code> → <code>validateAudioFile()</code> (shared/utils/audio-file.ts), puis <code>this.file.set(fichier)</code></td></tr>
       <tr><td>Construction du <code>FormData</code></td><td class="file">track.service.ts</td><td><code>upload(file, title)</code> → <code>body.append('audio', file)</code>, <code>body.append('title', title)</code></td></tr>
       <tr><td>Appel HTTP d'upload</td><td class="file">track.service.ts</td><td>même méthode → <code>http.post('/api/tracks', body)</code></td></tr>
       <tr><td>Récupération du <code>Blob</code> (lecture)</td><td class="file">track.service.ts</td><td><code>audio(id)</code> → <code>http.get(..., { responseType: 'blob' })</code></td></tr>
@@ -151,8 +151,8 @@
       <tr><td>Révocation de l'ancienne URL</td><td class="file">tracks-page.ts</td><td><code>play()</code> : <code>URL.revokeObjectURL(previousUrl)</code> avant d'en créer une nouvelle</td></tr>
     </table>
 
-    <div class="gap">
-      <strong>Manque identifié :</strong> la révocation ne se fait qu'au moment de lancer une <em>nouvelle</em> lecture. Il n'y a pas de révocation de l'<code>ObjectURL</code> en cours au moment où le composant est détruit (pas de logique dédiée dans <code>ngOnDestroy</code>). Si l'utilisateur quitte la page <code>/tracks</code> en pleine écoute, l'URL — et le <code>Blob</code> qu'elle référence — reste en mémoire. À corriger dans une prochaine étape (hors scope de ce document, qui reste une analyse).
+    <div class="callout">
+      <strong>Point d'attention (corrigé depuis l'analyse initiale) :</strong> la révocation ne se faisait qu'au moment de lancer une <em>nouvelle</em> lecture. Si l'utilisateur quittait la page <code>/tracks</code> en pleine écoute, l'<code>ObjectURL</code> — et le <code>Blob</code> qu'elle référence — restait en mémoire. C'est maintenant géré dans <code>ngOnDestroy</code> de <code>tracks-page.ts</code>, qui révoque l'URL en cours.
     </div>
 
     <h3>Schéma du flux</h3>
@@ -164,7 +164,7 @@
     <div class="flow">
       <div class="step frontend">
         <div class="label">Upload — composant → service → HttpClient → API</div>
-        <div class="desc"><code>choose()</code> stocke le fichier → <code>upload()</code> construit le <code>FormData</code> → <code>POST /api/tracks</code></div>
+        <div class="desc"><code>choose()</code> valide et mémorise le fichier → <code>upload()</code> construit le <code>FormData</code> → <code>POST /api/tracks</code></div>
       </div>
       <div class="arrow">↓</div>
       <div class="step backend">
@@ -203,8 +203,8 @@
       <tr><td>Champ <code>title</code></td><td>lu directement via <code>req.body.title</code> (texte du <code>FormData</code>, pas le fichier)</td></tr>
     </table>
     <p><strong>Conformité frontend :</strong> <code>track.service.ts</code> envoie exactement les deux champs attendus — <code>body.append('audio', file)</code> et <code>body.append('title', title)</code> — les noms correspondent au champ lu par Multer (<code>upload.single("audio")</code>) et au champ lu par Express (<code>req.body.title</code>). ✅ Conforme, rien à changer côté noms de champs.</p>
-    <div class="gap">
-      <strong>Manque identifié :</strong> le frontend actuel n'effectue <em>aucune</em> vérification avant l'appel HTTP (ni sur le format du fichier, ni sur sa taille) — il envoie systématiquement la requête et attend la réponse du serveur pour savoir si elle est valide.
+    <div class="callout">
+      <strong>Point d'attention (corrigé depuis l'analyse initiale) :</strong> le frontend n'effectuait aucune vérification avant l'appel HTTP. La fonction <code>validateAudioFile()</code> (<code>shared/utils/audio-file.ts</code>) vérifie désormais le format et la taille dès le choix du fichier, avec les mêmes règles que le backend — et un message d'erreur clair si le fichier est refusé.
     </div>
     <h3>Pourquoi la validation frontend ne remplace jamais la validation backend</h3>
     <p>La validation frontend améliore l'expérience utilisateur : retour instantané, pas d'attente réseau inutile pour une erreur évidente (mauvais format, fichier trop lourd). Mais elle ne remplace <strong>jamais</strong> la validation serveur, car le frontend est entièrement sous le contrôle de l'utilisateur : il peut être contourné (DevTools, requête <code>curl</code> ou Postman directement vers l'API, un autre client que l'application Angular). Le serveur est le seul endroit qu'un attaquant ne contrôle pas — c'est donc la seule barrière réellement fiable.</p>
