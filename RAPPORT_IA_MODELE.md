@@ -562,3 +562,26 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 - La différence entre test unitaire (un service ou une fonction isolé : `track.service.spec.ts`) et test d'intégration (plusieurs pièces ensemble : `tracks-page.spec.ts` fait travailler composant, service et HTTP simulé).
 
 **Piège rencontré (build cassé par les tests).** `tsconfig.app.json` inclut `src/**/*.ts`, donc le build de production compilait aussi les fichiers `*.spec.ts` sans connaître `describe`/`it`/`expect` (types `vitest/globals` seulement dans `tsconfig.spec.json`) : `npm run build` échouait. Correction : `"exclude": ["src/**/*.spec.ts"]` dans `tsconfig.app.json`. Résultat après correction : `npm run build` OK (main.js 480,64 kB brut, 96,36 kB transférés) et `npm test` toujours 41/41.
+
+## Mission 7 — Extension backend facultative (tests de contrat et de sécurité)
+
+**Objectif.** Vérifier que le contrat de l'API et ses protections tiennent, sans modifier aucune route : `backend/test/api.test.js` reste intact, nouveau fichier `backend/test/security.test.js` (12 tests, lancés par `npm test` avec les 2 tests existants : 14 au total).
+
+**Prompt principal.** Texte du sujet TP3 (extension backend), plan validé avant codage.
+
+**Ce qui est vérifié.**
+- **401** : sans JWT sur les quatre routes de pistes ; en-tête sans préfixe `Bearer` ; JWT invalide ; JWT signé avec un autre secret (falsifié) ; JWT expiré.
+- **400** : upload sans fichier (« Fichier audio requis ») ; type MIME refusé `text/plain` (« Format audio non accepté »).
+- **Pagination** : `page=2&limit=5` devient `skip 5` / `limit 5` et la réponse renvoie `page`, `limit`, `total`, `pages` ; valeurs absurdes (`page=-3&limit=500`) ramenées à page 1 et limit 20.
+- **Propriété** : la liste est filtrée par le `sub` du JWT et jamais par un paramètre du client (`?ownerId=…` ignoré) ; supprimer ou lire l'audio de la piste d'un autre utilisateur interroge Mongo avec l'`ownerId` de l'appelant et répond 404.
+
+**Méthode (sans MongoDB).** Les refus d'authentification et de validation se produisent avant toute requête en base, donc rien n'est à simuler. Pour la pagination et la propriété, `mock.method` (node:test) remplace temporairement `Track.find`, `Track.countDocuments`, `Track.findOneAndDelete` et `Track.findOne` par des fonctions qui enregistrent leurs arguments : le test vérifie quelle requête serait envoyée à Mongo. Les jetons sont signés dans le test avec le même secret par défaut que `app.js`.
+
+**Contrôle de qualité.** En retirant temporairement `ownerId` du filtre de la route `DELETE` (puis restauration), le test « supprimer la piste d'un autre utilisateur » échoue : la faille serait détectée. Aucune route n'a été modifiée (`git status` propre côté `src/`).
+
+**Résultat observé.** `cd backend && npm test` : 14 tests, 14 passés, sans MongoDB.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi 404 et pas 403 pour la piste d'un autre : ne pas révéler son existence.
+- Pourquoi un client ne peut pas choisir le propriétaire : le filtre vient du JWT vérifié, pas de la requête.
+- Ce que fait un mock : remplacer une dépendance (la base) par un espion pour tester la logique seule.
