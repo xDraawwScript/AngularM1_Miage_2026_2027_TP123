@@ -26,26 +26,30 @@ Une fois les fichiers déposés ici, ils s'afficheront automatiquement dans `RAP
 
 # TP3 — Captures
 
-## Captures des pages dans leurs différents états (déjà faites, `tp3-01` à `tp3-14`)
+## Captures des pages dans leurs différents états (déjà faites, `tp3-01` à `tp3-18`)
 
-Prises sur l'application réelle (front + back lancés), en 800 px de large. Pour les états très courts (suppression en cours, upload en cours) la requête a été **retardée artificiellement de quelques secondes** pour pouvoir la photographier ; le comportement montré est le vrai.
+Prises sur l'application réelle (front + back lancés) avec Chrome automatisé : **1440×900 en densité ×2** (images de 2880×1800 px), et **390×844 en densité ×3** pour le mobile. Pour les états très courts (suppression en cours, upload en cours) la requête a été **retardée artificiellement de quelques secondes** pour pouvoir la photographier ; le comportement montré est le vrai (sur la capture d'upload, la barre est donc encore à 0 %).
 
 | Fichier | Page / état |
 |---|---|
-| `tp3-01-connexion.jpg` | Connexion, état initial |
-| `tp3-02-connexion-erreur-identifiants.jpg` | Connexion, 401 « Identifiants incorrects » |
-| `tp3-03-inscription-erreurs-validation.jpg` | Inscription, messages de validation (nom, email, mot de passe) |
-| `tp3-04-bibliotheque-liste.jpg` | Bibliothèque, liste de pistes |
-| `tp3-05-bibliotheque-lecture-en-cours.jpg` | Lecture : carte « Pause » + barre « En lecture » |
-| `tp3-06-suppression-en-cours.jpg` | **Mission 5** : carte atténuée, spinner, bouton bloqué |
-| `tp3-07-suppression-reussie-snackbar.jpg` | **Mission 5** : SnackBar « a été supprimée » |
-| `tp3-08-suppression-piste-deja-supprimee-404.jpg` | **Mission 5** : SnackBar « n'existe plus ou ne vous appartient pas » (404) |
-| `tp3-09-upload-en-cours.jpg` | **Mission 6** : barre de progression, champs bloqués, bouton « Envoi… » |
-| `tp3-10-upload-reussi-piste-ajoutee.jpg` | **Mission 6** : réussite, nouvelle piste en tête de liste |
-| `tp3-11-upload-format-refuse.jpg` | **Mission 6** : fichier non audio refusé avant envoi |
-| `tp3-12-bibliotheque-filtre-sans-resultat.jpg` | Filtre sans résultat |
-| `tp3-13-bibliotheque-pagination-page-2.jpg` | Pagination, page 2 (« 6 – 9 sur 9 ») |
-| `tp3-14-profil.jpg` | Profil |
+| `tp3-01-connexion.png` | Connexion, état initial |
+| `tp3-02-connexion-erreur-identifiants.png` | Connexion, 401 « Identifiants incorrects » |
+| `tp3-03-inscription-erreurs-validation.png` | Inscription, messages de validation (nom, email, mot de passe) |
+| `tp3-04-bibliotheque-liste.png` | Bibliothèque, liste de pistes (6 par page) et trident 3D |
+| `tp3-05-bibliotheque-lecture-en-cours.png` | Lecture : carte « Pause » + barre « En lecture » |
+| `tp3-06-suppression-en-cours.png` | **Mission 5** : carte atténuée, spinner, bouton bloqué |
+| `tp3-07-suppression-reussie-snackbar.png` | **Mission 5** : SnackBar « a été supprimée » |
+| `tp3-08-suppression-piste-deja-supprimee-404.png` | **Mission 5** : SnackBar « n'existe plus ou ne vous appartient pas » (404) |
+| `tp3-09-upload-en-cours.png` | **Mission 6** : barre de progression, champs bloqués, bouton « Envoi… » |
+| `tp3-10-upload-reussi.png` | **Mission 6** : message de réussite, nouvelle piste en tête de liste |
+| `tp3-11-upload-format-refuse.png` | **Mission 6** : fichier non audio refusé avant envoi |
+| `tp3-12-bibliotheque-filtre-sans-resultat.png` | Filtre sans résultat |
+| `tp3-13-bibliotheque-pagination-page-2.png` | Pagination, page 2 |
+| `tp3-14-profil.png` | Profil |
+| `tp3-15-bibliotheque-fond-video.png` | Bonus : fond vidéo activé (bouton « Fond uni ») |
+| `tp3-16-trident-3d.png` | Bonus : trident 3D en gros plan |
+| `tp3-17-mobile-bibliotheque.png` | Mobile : bibliothèque (une colonne) |
+| `tp3-18-mobile-profil.png` | Mobile : profil |
 
 ## Captures Network à prendre toi-même (livrable TP3)
 

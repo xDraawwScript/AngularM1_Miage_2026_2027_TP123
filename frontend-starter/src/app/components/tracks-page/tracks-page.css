@@ -142,8 +142,12 @@ audio {
     gap: 2.4rem;
   }
 
+  /* Petit écran : trident simple décor, derrière le texte et non attrapable
+     (sinon il passerait par-dessus l'intro et bloquerait le défilement au doigt). */
   .trident {
+    z-index: auto;
     opacity: 0.25;
+    pointer-events: none;
   }
 
   .player-bar {

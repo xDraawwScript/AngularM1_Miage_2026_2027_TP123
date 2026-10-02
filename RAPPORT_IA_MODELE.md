@@ -623,3 +623,14 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 
 **Remarque.** Les captures `preuves/tp3-04` et `tp3-13`, prises avant ce changement, montrent encore 5 pistes par page ; l'étudiant peut les reprendre s'il veut des images cohérentes.
 
+## Captures haute qualité des pages
+
+**Objectif.** Refaire les captures de l'application en meilleure qualité (demande de l'étudiant) : les premières, prises dans le volet du navigateur intégré, étaient limitées à 800 px de large et parfois mal redessinées.
+
+**Méthode.** Script Node avec `puppeteer-core` pilotant le Chrome installé sur la machine, en mode automatisé (outil installé dans un dossier temporaire, **pas** dans le projet). Captures en 1440×900 avec densité ×2 (PNG de 2880×1800) et en 390×844 avec densité ×3 pour le mobile. Les états transitoires (suppression en cours, upload en cours) sont obtenus en retardant la requête de quelques secondes par interception réseau. Les pistes de test créées par le script (fichiers `tp3-…`) sont supprimées à la fin : vérifié, 7 pistes restantes, 0 piste de test.
+
+**Résultat.** 18 captures `preuves/tp3-01` à `tp3-18` (.png), qui remplacent les 14 anciennes .jpg ; ajout du fond vidéo, du trident 3D en gros plan et de deux vues mobiles. Tableau mis à jour dans `preuves/README.md`.
+
+**Défaut trouvé grâce aux captures et corrigé.** Sur mobile, le trident 3D passait **par-dessus** le texte d'introduction : pour pouvoir l'attraper à la souris sur ordinateur, il avait été placé au premier plan (`z-index: 2`), ce qui s'appliquait aussi au petit écran où il n'est qu'un décor atténué. Correction dans `tracks-page.css` (media query ≤ 960 px) : `z-index: auto` et `pointer-events: none`, il repasse derrière le texte et ne bloque plus le défilement au doigt. Vérifié par script (le point central du trident renvoie un élément de la page, pas le trident).
+
+**Piège.** Sur une capture, un bouton apparaissait « survolé » : le pointeur virtuel était resté à l'endroit du dernier clic. Le script éloigne désormais le pointeur avant de capturer.
