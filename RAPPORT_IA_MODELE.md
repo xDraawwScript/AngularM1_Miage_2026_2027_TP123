@@ -365,3 +365,29 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 **Ce que chaque membre sait maintenant expliquer sans l'agent.**
 - Pourquoi une animation CSS qui touche à `transform` peut silencieusement écraser un `transform` statique déjà nécessaire ailleurs sur le même élément (une seule valeur de `transform` peut s'appliquer à la fois ; il faut soit tout combiner dans le même keyframe, soit animer une autre propriété).
 - Pourquoi un skeleton loader (placeholder animé) donne une meilleure expérience qu'un simple texte « Chargement… » : il indique la forme du contenu à venir et rend l'attente moins désagréable.
+
+## Audit final TP2 — trois manques de la Mission 3 comblés
+
+**Objectif.** Vérifier ligne par ligne l'énoncé TP2 contre le code réel (question de l'étudiant : « tout ça c'est fait ? le code est compréhensible ? ») et corriger ce qui manquait.
+
+**Prompt principal.** Énoncé TP2 complet collé, suivi de « Tout ça c'est fait ? le code est compréhensible ? ».
+
+**Résultat de l'audit.** Mission 2 (obligatoire), Checkpoint Network, livrables écrits et améliorations facultatives (progression, suppression, formatage, filtre) : faits. Trois exigences de la Mission 3 manquaient :
+1. **message de succès** après l'upload (liste « Ajoutez ou complétez uniquement les éléments d'interface manquants pendant l'envoi ») ;
+2. **affichage du morceau en cours** (seul le libellé du bouton changeait) ;
+3. **erreur audio compréhensible** (l'échec du téléchargement du Blob n'était que logué en console, et une erreur de décodage de l'élément `<audio>` n'était pas écoutée).
+
+**Plan / implémentation.** Nouveaux signals `uploadSuccess` (message temporaire 4 s), `currentTitle` (affiché sous la forme « En lecture : … »), `playbackError` (remis à zéro à chaque nouvelle lecture) ; écouteur `(error)` sur `<audio>` pour distinguer « le serveur n'a pas renvoyé le fichier » (erreur HTTP à la récupération du Blob) de « le navigateur n'arrive pas à décoder le fichier » (événement `error` de l'élément audio).
+
+**Vérifications réalisées (backend et frontend relancés pour de vrai, après réinstallation des `node_modules` disparus du dossier).**
+- Upload d'un faux mp3 → « ✓ « faux-son.mp3 » a bien été envoyée. ».
+- Lecture de ce faux fichier (type MIME valide, contenu invalide) → « En lecture : faux-son.mp3 » puis « Le fichier « faux-son.mp3 » n'a pas pu être lu par le navigateur. » (cas réel de l'événement `error` audio).
+- Lecture d'une vraie piste ensuite → « En lecture : 8-bit-game-over… », message d'erreur effacé, `audio.paused === false`.
+- Piste de test supprimée via `DELETE /api/tracks/:id` après vérification.
+
+**Erreurs ou propositions rejetées.** Aucune ; l'audit sur « code compréhensible » a conclu à une limite, non corrigée sans accord de l'étudiant : `tracks-page.ts` concentre cinq responsabilités (pagination, upload/validation, lecture, filtre, formatage) — voir la réponse donnée à l'étudiant.
+
+**Fichiers effectivement modifiés.** `tracks-page.ts`, `tracks-page.html`, `tracks-page.css`.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- La différence entre une erreur **HTTP** lors de la récupération du Blob (le fichier n'est jamais arrivé) et une erreur **de décodage** de l'élément `<audio>` (le fichier est arrivé mais illisible) : deux événements, deux messages.
