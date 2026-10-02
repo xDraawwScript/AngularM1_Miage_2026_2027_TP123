@@ -585,3 +585,15 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 - Pourquoi 404 et pas 403 pour la piste d'un autre : ne pas révéler son existence.
 - Pourquoi un client ne peut pas choisir le propriétaire : le filtre vient du JWT vérifié, pas de la requête.
 - Ce que fait un mock : remplacer une dépendance (la base) par un espion pour tester la logique seule.
+
+## Captures des pages (preuves)
+
+**Objectif.** Fournir des captures de chaque page dans plusieurs états (demande de l'étudiant : « un screen de chacune des pages dans des états différents »), rangées dans `preuves/` (`tp3-01` à `tp3-14`, tableau dans `preuves/README.md`). Les deux captures de l'onglet Network (suppression, upload) restent à prendre par l'étudiant : l'agent ne peut pas capturer les DevTools ; les étapes sont dans `preuves/README.md`.
+
+**Méthode.** Pilotage du navigateur intégré : états forcés par script (champ invalide, mauvais mot de passe, fichier choisi via `DataTransfer`, requête retardée de quelques secondes pour photographier un état transitoire). Les pistes de test créées ont toutes été supprimées ensuite (retour aux 7 pistes d'origine).
+
+**Pièges rencontrés.**
+- La première capture prise après un chargement est « périmée » (le volet du navigateur est masqué : la page est mal repeinte, par exemple le grand titre apparaît pâle) ; il faut recapturer pour obtenir une image nette. C'était aussi l'origine du titre « Connexion » qui paraissait pâle.
+- **Défaut CSS trouvé grâce aux captures :** la carte en cours de suppression n'était pas atténuée. L'animation d'apparition (`animation: … both`) conserve `opacity: 1` à la fin et écrase l'opacité de la classe `.deleting`. Correction : `animation: none` sur `.track-card.deleting` (même piège que celui déjà rencontré avec `transform`).
+- Les bandeaux (SnackBar 4 s, message de succès 4 s) peuvent disparaître avant la capture : l'état « upload réussi » est donc montré par la nouvelle piste en tête de liste.
+- L'émulation mobile du navigateur intégré produit des images inexploitables (page rendue minuscule) : la vérification mobile se fait par mesure (`scrollWidth` = 375, aucune erreur de débordement) et non par capture.

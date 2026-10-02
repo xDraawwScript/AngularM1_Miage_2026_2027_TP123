@@ -103,8 +103,11 @@ button {
   color: var(--black);
 }
 
-/* Suppression en cours : carte atténuée, boutons inactifs. */
+/* Suppression en cours : carte atténuée, boutons inactifs.
+   `animation: none` est nécessaire : l'animation d'apparition (fill-mode both)
+   garde opacity: 1 et écraserait sinon notre opacité. */
 .track-card.deleting {
+  animation: none;
   opacity: 0.55;
   pointer-events: none;
 }
