@@ -528,3 +528,35 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 - Pourquoi l'état est un seul `status` plutôt que plusieurs booléens (impossible d'être à la fois « en cours » et « réussi »).
 - Pourquoi `withXhr()` est nécessaire pour la progression d'upload dans Angular 22 (`fetch` ne la fournit pas).
 - Comment le pourcentage se calcule et pourquoi `total` peut manquer.
+
+## Mission 7 — Tests automatisés frontend
+
+**Objectif.** Ajouter une vraie suite de tests frontend (le starter n'en avait aucun), sans backend ni MongoDB en fonctionnement.
+
+**Prompt principal.** Texte du sujet TP3 (Mission 7) ; au lieu des trois tests minimum, couverture de tous les flux listés du sujet.
+
+**Infrastructure (rien n'était prêt).**
+- `jsdom` (environnement DOM de vitest) n'était pas installé : `npm i -D jsdom --legacy-peer-deps`.
+- Pas de `tsconfig.spec.json` : créé (types `vitest/globals`), et référencé dans `angular.json` (`test.options.tsConfig`).
+- Le builder `@angular/build:unit-test` cherchait une configuration `development` de la cible `build` qui n'existe pas dans ce projet (« Configuration 'development' for target 'build' … not set ») : ajout de `"buildTarget": "gpc:build"`.
+- Commande : `npm test` (= `ng test --watch=false`).
+
+**Méthode.** Les requêtes HTTP sont interceptées en mémoire avec `provideHttpClient()` + `provideHttpClientTesting()` et `HttpTestingController` : on vérifie l'URL, la méthode, les paramètres, le corps et les en-têtes de ce que le code envoie, puis on « répond » avec `flush(...)` (réponse simulée, y compris des erreurs 401/404/500). `afterEach` appelle `http.verify()` : toute requête non prévue fait échouer le test. Aucun serveur ni base n'est donc nécessaire.
+
+**Tests écrits (41, 7 fichiers).**
+- `auth.service.spec.ts` (6) : `login()` = `POST /api/auth/login` avec le bon corps, token mémorisé (signal + `localStorage`), rien mémorisé sur 401, `register()`, `profile()`, `logout()`.
+- `track.service.spec.ts` (5) : `list()` transmet `page` et `limit` (et leurs valeurs par défaut), `remove()` = `DELETE /api/tracks/:id`, `upload()` = `FormData` (`audio`, `title`) avec suivi de progression, `audio()` en blob.
+- `auth.interceptor.spec.ts` (4) : en-tête `Authorization: Bearer …` seulement si un token existe ; sur 401, déconnexion + redirection `/login` ; pas de déconnexion sur un 404.
+- `auth.guard.spec.ts` (3) : `true` avec token, `UrlTree` vers `/login` sans token et après déconnexion.
+- `audio-file.spec.ts` (6) : format refusé, taille > 25 Mo refusée, limite de 25 Mo acceptée, libellés.
+- `tracks-page.spec.ts` (9) : chargement, message d'erreur après échec HTTP, suppression confirmée (DELETE puis rechargement et notification), confirmation refusée, double clic, 404, erreur réseau, dernière piste d'une page > 1 (recharge la page précédente), piste en lecture supprimée (lecture arrêtée, URL locale révoquée).
+- `track-upload.spec.ts` (8) : états, calcul du pourcentage (`loaded / total`), progression indéterminée, contrôles bloqués et double soumission ignorée, succès (formulaire vidé, `uploaded` émis), retour à `idle` après 4 s (horloge simulée), échec HTTP.
+
+**Contrôle de la qualité des tests (« mutation à la main »).** Pour prouver qu'un test peut échouer, le code a été cassé volontairement puis restauré : intercepteur sans en-tête → 1 test échoue ; garde anti double clic supprimée → le test « double clic » échoue ; mauvais calcul du pourcentage → le test du pourcentage échoue ; guard qui laisse tout passer → 2 tests échouent. Les quatre fautes sont détectées.
+
+**Résultat observé.** `npm test` : 7 fichiers, 41 tests passés, environ 7 s, sans backend lancé.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi ces tests n'ont pas besoin de MongoDB : `HttpTestingController` remplace le réseau, le code croit parler à un serveur mais la réponse est fabriquée par le test.
+- Ce que vérifie un test d'intercepteur (la requête sortante a le bon en-tête, et un 401 déclenche déconnexion + redirection) et de guard (la valeur de retour : `true` ou un `UrlTree` vers `/login`).
+- La différence entre test unitaire (un service ou une fonction isolé : `track.service.spec.ts`) et test d'intégration (plusieurs pièces ensemble : `tracks-page.spec.ts` fait travailler composant, service et HTTP simulé).
