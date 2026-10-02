@@ -43,6 +43,7 @@
           <app-track-card
             [track]="track"
             [playing]="isPlayingTrack(track)"
+            [deleting]="deletingId() === track.id"
             (playRequested)="play($event)"
             (removeRequested)="remove($event)"
           />

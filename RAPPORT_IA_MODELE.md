@@ -475,3 +475,31 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 - Pourquoi les couleurs sont des variables CSS globales et les boutons/champs des classes partagées : changer le thème se fait à un seul endroit.
 - Pourquoi un composant décoratif (`trident`, `dots`) plutôt que de copier le SVG dans chaque page.
 - Pourquoi `sticky` ne fonctionne pas avec `overflow: hidden` sur un ancêtre.
+
+# TP3 — Fiabilisation et enrichissement du frontend (branche `tp-3`)
+
+## Mission 5 — Suppression d'une piste
+
+**Objectif.** Fiabiliser la suppression (le bouton existait déjà depuis le TP2) : confirmation, état « en cours » contre les doubles clics, message de succès/erreur par SnackBar, liste rafraîchie, et cas où la piste n'existe plus ou n'appartient pas à l'utilisateur.
+
+**Prompt principal.** Texte du sujet TP3 (Mission 5), plan validé avant codage ; confirmation gardée en `confirm()` natif (le plus simple à expliquer), travail sur la branche `tp-3`.
+
+**Constat avant modification (manques identifiés).** `remove()` faisait `confirm()` → `TrackService.remove()` → `load()`, mais : pas d'état de suppression (un double clic envoyait deux `DELETE`, le second répondait 404 : reproduit dans le navigateur), erreurs seulement dans la console, aucune notification, page vide possible si on supprime la dernière piste d'une page > 1, et la piste supprimée pouvait continuer à jouer dans la barre « En lecture ».
+
+**Composant et service concernés.** `TracksPageComponent` (orchestre) et `TrackCardComponent` (bouton, purement visuel) ; l'appel HTTP reste dans `TrackService.remove()` : le composant n'injecte jamais `HttpClient`.
+
+**Ce qui a été fait.**
+- `tracks-page.ts` : signal `deletingId` (id de la piste en cours de suppression ; `remove()` sort immédiatement si une suppression est déjà en cours) ; `MatSnackBar` pour tous les retours ; succès → message, arrêt de la lecture si la piste supprimée était celle jouée (nouvelle méthode privée `releaseAudio()`, aussi utilisée par `ngOnDestroy`), rechargement en reculant d'une page si c'était la seule piste de la page ; erreur `404` → « Cette piste n'existe plus ou ne vous appartient pas » + rechargement (la liste affichée était périmée) ; erreur `500` → message du serveur + rechargement (le backend a supprimé la métadonnée mais pas le fichier) ; autre erreur → « Suppression impossible, réessayez ».
+- `track-card` : nouvel `input` `deleting` ; carte atténuée, boutons désactivés, spinner à la place de « × », `aria-busy`.
+- `styles.css` : classe `.ds-snack` (bandeau noir, texte os, action rouge) appliquée via `panelClass`.
+- `API_CONTRACT.md` : documentation du `404` de `DELETE` (aucune route modifiée).
+- Les logs d'erreur n'impriment que le code HTTP : jamais de JWT.
+
+**Pourquoi le guard et l'interface ne suffisent pas.** `authGuard` et le bouton « Supprimer » ne sont que du JavaScript exécuté chez l'utilisateur : on peut les contourner (DevTools, `curl`, token d'un autre compte). Seul le backend est une barrière fiable : le middleware `auth` vérifie la signature et l'expiration du JWT, puis la requête Mongo `findOneAndDelete({ _id, ownerId: req.auth.sub })` n'efface que si la piste appartient bien à l'appelant ; sinon 404 (et non 403, pour ne pas révéler l'existence de la piste d'autrui).
+
+**Vérifications réalisées (serveurs réels).** Double clic avec requête ralentie : un seul `DELETE`, carte grisée avec spinner, bouton désactivé, snackbar « a été supprimée », liste rafraîchie ; piste supprimée en direct par l'API puis clic dans l'interface périmée : 404 → snackbar « n'existe plus », carte retirée au rechargement. Pièges : le serveur de dev est resté bloqué sur un build en échec après une édition en deux temps (corrigé en re-sauvegardant les fichiers) ; Angular utilise `fetch` (et non XHR) pour `HttpClient`, il faut donc patcher `fetch` pour ralentir une requête en test.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi la suppression passe par un service (testable, un seul endroit qui connaît l'URL).
+- Comment le backend protège la suppression (JWT puis filtre `ownerId`, 404 volontaire).
+- Pourquoi on bloque pendant l'appel (un clic = une requête, sinon le second renvoie 404).

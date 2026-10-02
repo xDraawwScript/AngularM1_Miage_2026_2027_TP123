@@ -16,6 +16,8 @@ export class TrackCardComponent {
   readonly track = input.required<Track>();
   /** Vrai quand CETTE piste est en cours de lecture : le bouton devient « Pause ». */
   readonly playing = input(false);
+  /** Vrai pendant la suppression de CETTE piste : la carte est grisée et ses boutons bloqués. */
+  readonly deleting = input(false);
 
   readonly playRequested = output<Track>();
   readonly removeRequested = output<Track>();

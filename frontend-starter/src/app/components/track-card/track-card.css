@@ -102,3 +102,13 @@ button {
   background: var(--bone);
   color: var(--black);
 }
+
+/* Suppression en cours : carte atténuée, boutons inactifs. */
+.track-card.deleting {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}

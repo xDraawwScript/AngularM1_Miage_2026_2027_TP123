@@ -194,6 +194,18 @@ nav a.active-link::after { right: 0; }
   animation: spin 0.7s linear infinite;
 }
 
+/* Notification (MatSnackBar) : bandeau noir, texte os, action rouge. */
+.ds-snack {
+  --mat-snack-bar-container-color: var(--black);
+  --mat-snack-bar-supporting-text-color: var(--bone);
+  --mat-snack-bar-button-color: var(--red);
+  --mat-snack-bar-container-shape: 0;
+  --mat-snack-bar-supporting-text-font: var(--font-ui);
+  --mat-snack-bar-supporting-text-size: 1.05rem;
+  --mat-snack-bar-button-text-font: var(--font-ui);
+  --mat-snack-bar-button-text-weight: 700;
+}
+
 /* ---- Animations --------------------------------------------------------- */
 
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }

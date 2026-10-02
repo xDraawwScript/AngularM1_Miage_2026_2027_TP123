@@ -14,7 +14,7 @@ Le contrat HTTP ne dépend pas du choix de persistance : le backend fourni utili
 | GET | `/tracks?page=1&limit=5` | JWT | `Page<Track>` |
 | POST | `/tracks` | multipart : `audio`, `title` | `201 Track` |
 | GET | `/tracks/:id/audio` | JWT | flux audio |
-| DELETE | `/tracks/:id` | JWT | `204` (bonus) |
+| DELETE | `/tracks/:id` | JWT | `204` ; `404` si la piste est inconnue ou n’appartient pas à l’utilisateur (bonus) |
 
 `Page<Track>` contient `items`, `page`, `limit`, `total` et `pages`. Formats acceptés : MP3, WAV, OGG et M4A, 25 Mo maximum.
 

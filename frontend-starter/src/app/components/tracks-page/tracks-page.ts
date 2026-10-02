@@ -1,7 +1,9 @@
 import { Component, computed, ElementRef, inject, OnDestroy, signal, ViewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Track } from '../../shared/models/track.model';
 import { TrackService } from '../../shared/services/track.service';
 import { TrackCardComponent } from '../track-card/track-card';
@@ -24,6 +26,7 @@ import { FrenchPaginatorIntl } from './mat-paginator-intl-fr';
 })
 export class TracksPageComponent implements OnDestroy {
   private readonly service = inject(TrackService);
+  private readonly snackBar = inject(MatSnackBar);
 
   // ---- Liste et pagination ------------------------------------------------
 
@@ -71,9 +74,17 @@ export class TracksPageComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Libère le morceau gardé en mémoire (voir `play`).
+    this.releaseAudio();
+  }
+
+  /** Libère le morceau gardé en mémoire (voir `play`) et remet le lecteur à zéro. */
+  private releaseAudio(): void {
     const url = this.audioUrl();
     if (url) URL.revokeObjectURL(url);
+    this.audioUrl.set('');
+    this.currentTrackId.set(null);
+    this.currentTitle.set('');
+    this.isPlaying.set(false);
   }
 
   /**
@@ -162,12 +173,48 @@ export class TracksPageComponent implements OnDestroy {
 
   // ---- Suppression --------------------------------------------------------
 
+  /** Id de la piste en cours de suppression : bloque les doubles clics et grise sa carte. */
+  readonly deletingId = signal<string | null>(null);
+
+  /**
+   * Supprime une piste après confirmation. L'appel passe par TrackService (jamais par
+   * HttpClient directement). Le serveur reste seul juge : il vérifie le JWT et que la
+   * piste appartient bien à l'utilisateur, sinon il répond 404.
+   */
   remove(track: Track): void {
+    if (this.deletingId()) return; // une suppression est déjà en cours
     if (!confirm(`Supprimer « ${track.title} » ?`)) return;
 
+    this.deletingId.set(track.id);
     this.service.remove(track.id).subscribe({
-      next: () => this.load(),
-      error: (error) => console.error('[TracksPage] Suppression impossible', error),
+      next: () => {
+        this.deletingId.set(null);
+        // La piste supprimée ne doit pas continuer à jouer.
+        if (this.currentTrackId() === track.id) this.releaseAudio();
+        this.notify(`« ${track.title} » a été supprimée.`);
+        // Si c'était la seule piste de la page, on recule d'une page (sinon page vide).
+        const wasLastOfPage = this.tracks().length === 1 && this.page() > 1;
+        this.load(wasLastOfPage ? this.page() - 1 : this.page());
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('[TracksPage] Suppression impossible', error.status);
+        this.deletingId.set(null);
+        if (error.status === 404) {
+          // Déjà supprimée (autre onglet) ou pas à nous : la liste affichée est périmée.
+          this.notify("Cette piste n'existe plus ou ne vous appartient pas.");
+          this.load();
+        } else if (error.status === 500) {
+          // Le serveur a supprimé la piste en base mais pas le fichier : on rafraîchit.
+          this.notify(error.error?.message ?? 'Erreur serveur pendant la suppression.');
+          this.load();
+        } else {
+          this.notify('Suppression impossible, réessayez.');
+        }
+      },
     });
+  }
+
+  private notify(message: string): void {
+    this.snackBar.open(message, 'OK', { duration: 4000, panelClass: 'ds-snack' });
   }
 }

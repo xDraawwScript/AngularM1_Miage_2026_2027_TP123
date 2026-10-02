@@ -1,4 +1,4 @@
-<article class="track-card" [class.playing]="playing()">
+<article class="track-card" [class.playing]="playing()" [class.deleting]="deleting()" [attr.aria-busy]="deleting()">
   <h3>{{ track().title }}</h3>
   <p class="original">{{ track().originalName }}</p>
 
@@ -12,6 +12,7 @@
     <button
       type="button"
       class="play"
+      [disabled]="deleting()"
       (click)="playRequested.emit(track())"
       [attr.aria-label]="(playing() ? 'Mettre en pause ' : 'Lire ') + track().title"
     >
@@ -20,10 +21,15 @@
     <button
       type="button"
       class="delete"
+      [disabled]="deleting()"
       (click)="removeRequested.emit(track())"
       [attr.aria-label]="'Supprimer ' + track().title"
     >
-      ×
+      @if (deleting()) {
+        <span class="spinner"></span>
+      } @else {
+        ×
+      }
     </button>
   </div>
 </article>
