@@ -622,3 +622,15 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 **Vérifications réalisées.** `npm test` : 41/41. Navigateur (7 pistes réelles) : page 1 = 6 cartes (« 1 – 6 sur 7 »), page 2 = 1 carte (« 7 – 7 sur 7 »), requêtes `GET /api/tracks?page=N&limit=6` en 200 ; la grille donne 2 colonnes × 3 rangées dans le volet de test (3 colonnes × 2 sur grand écran).
 
 **Remarque.** Les captures `preuves/tp3-04` et `tp3-13`, prises avant ce changement, montrent encore 5 pistes par page ; l'étudiant peut les reprendre s'il veut des images cohérentes.
+
+## Antisèche en HTML (document personnel, hors rendu)
+
+**Objectif.** Demande de l'étudiant : l'antisèche lisible dans un navigateur, avec la liste de toutes les questions des trois sujets et leurs réponses, et une explication de ce qu'est un Signal.
+
+**Ce qui a été fait.** Génération de `ANTISECHE-SOUTENANCE.html` (page unique, thème clair/sombre, menu fixe) en trois parties : (1) « C'est quoi un Signal ? » (définition, `signal` / lecture `()` / `set` / `update` / `computed`, tous les signaux réels du projet, comparaison avec variable normale, `localStorage` et Observable, pièges) ; (2) 35 questions des sujets TP1, TP2 et TP3 (questions explicites, consignes « expliquer… » et restitution orale) avec leur réponse, repliables, avec un filtre de recherche ; (3) l'antisèche Markdown existante convertie en HTML. La page est générée à partir de `ANTISECHE-SOUTENANCE.md` (qui reste la source) ; aucun code de l'application n'est modifié.
+
+**Confidentialité.** `ANTISECHE-SOUTENANCE.html` est ajouté au `.gitignore` à côté du `.md` : document personnel, jamais poussé ni rendu (`git check-ignore` vérifié).
+
+**Pièges rencontrés.** Le convertisseur Markdown maison laissait des `**` autour des passages en gras contenant du code (corrigé en protégeant le code par des marqueurs avant de traiter gras et italique) ; le volet du navigateur affiche les fichiers locaux sans JavaScript, la page a donc été testée via un serveur temporaire sur `localhost` (boutons « tout déplier / replier » et filtre vérifiés : 35 questions, 10 correspondent à « jwt »), arrêté ensuite.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.** Ce qu'est un Signal et pourquoi il évite la synchronisation manuelle de l'affichage ; la réponse à chaque question des trois sujets.
