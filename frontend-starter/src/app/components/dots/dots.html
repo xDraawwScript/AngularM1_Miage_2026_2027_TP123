@@ -1,0 +1,7 @@
+@for (diameter of diameters; track diameter) {
+  <div class="row">
+    @for (column of columns; track column) {
+      <span [style.width.px]="diameter" [style.height.px]="diameter"></span>
+    }
+  </div>
+}

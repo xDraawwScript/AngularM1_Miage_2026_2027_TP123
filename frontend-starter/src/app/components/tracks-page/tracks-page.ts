@@ -5,6 +5,7 @@ import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, PageEvent } from '@
 import { Track } from '../../shared/models/track.model';
 import { TrackService } from '../../shared/services/track.service';
 import { TrackCardComponent } from '../track-card/track-card';
+import { TridentComponent } from '../trident/trident';
 import { TrackUploadComponent } from '../track-upload/track-upload';
 import { FrenchPaginatorIntl } from './mat-paginator-intl-fr';
 
@@ -16,7 +17,7 @@ import { FrenchPaginatorIntl } from './mat-paginator-intl-fr';
  * L'envoi de fichier est dans <app-track-upload>, l'affichage d'une piste dans <app-track-card>.
  */
 @Component({
-  imports: [ReactiveFormsModule, MatPaginatorModule, TrackUploadComponent, TrackCardComponent],
+  imports: [ReactiveFormsModule, MatPaginatorModule, TrackUploadComponent, TrackCardComponent, TridentComponent],
   templateUrl: './tracks-page.html',
   styleUrl: './tracks-page.css',
   providers: [{ provide: MatPaginatorIntl, useClass: FrenchPaginatorIntl }],
@@ -66,12 +67,10 @@ export class TracksPageComponent implements OnDestroy {
   @ViewChild('audioPlayer') private audioPlayer?: ElementRef<HTMLAudioElement>;
 
   constructor() {
-    document.body.classList.add('theme-fleetwood');
     this.load();
   }
 
   ngOnDestroy(): void {
-    document.body.classList.remove('theme-fleetwood');
     // Libère le morceau gardé en mémoire (voir `play`).
     const url = this.audioUrl();
     if (url) URL.revokeObjectURL(url);

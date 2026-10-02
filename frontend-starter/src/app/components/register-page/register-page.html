@@ -1,31 +1,32 @@
-<section class="field">
-  <div class="shard"></div>
+<section class="screen">
+  <app-trident class="trident" />
+  <app-dots class="dots" />
+  <h1>Créer un compte</h1>
 
   <div class="panel">
-    <h1>Créer un compte</h1>
     <form [formGroup]="form" (ngSubmit)="submit()">
-      <label>
-        Nom
-        <input formControlName="name" />
+      <label class="ds-field">
+        <span class="ds-label">Nom</span>
+        <input formControlName="name" placeholder="Votre nom" />
         @if (form.controls.name.invalid && form.controls.name.touched) {
           <small class="field-error">Nom requis</small>
         }
       </label>
-      <label>
-        Email
-        <input type="email" formControlName="email" />
+      <label class="ds-field">
+        <span class="ds-label">Email</span>
+        <input type="email" formControlName="email" placeholder="vous@exemple.com" />
         @if (form.controls.email.invalid && form.controls.email.touched) {
           <small class="field-error">Email invalide</small>
         }
       </label>
-      <label>
-        Mot de passe
-        <input type="password" formControlName="password" />
+      <label class="ds-field">
+        <span class="ds-label">Mot de passe</span>
+        <input type="password" formControlName="password" placeholder="8 caractères minimum" />
         @if (form.controls.password.invalid && form.controls.password.touched) {
           <small class="field-error">Mot de passe requis (8 caractères minimum)</small>
         }
       </label>
-      <button type="submit" [disabled]="form.invalid || submitting()">
+      <button type="submit" class="ds-btn" [disabled]="form.invalid || submitting()">
         @if (submitting()) {
           <span class="spinner"></span> Création…
         } @else {
@@ -33,9 +34,10 @@
         }
       </button>
     </form>
+
     @if (error()) {
-      <p class="error">{{ error() }}</p>
+      <p class="error" role="alert">{{ error() }}</p>
     }
-    <p><a routerLink="/login">Déjà inscrit ?</a></p>
+    <p><a class="ds-link" routerLink="/login">Déjà inscrit ?</a></p>
   </div>
 </section>

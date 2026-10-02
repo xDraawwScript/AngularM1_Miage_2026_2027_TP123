@@ -1,4 +1,4 @@
-<article class="track-card">
+<article class="track-card" [class.playing]="playing()">
   <h3>{{ track().title }}</h3>
   <p class="original">{{ track().originalName }}</p>
 
@@ -15,7 +15,7 @@
       (click)="playRequested.emit(track())"
       [attr.aria-label]="(playing() ? 'Mettre en pause ' : 'Lire ') + track().title"
     >
-      {{ playing() ? '⏸ Pause' : '▶ Lire' }}
+      {{ playing() ? 'Pause' : 'Lire' }}
     </button>
     <button
       type="button"
@@ -23,7 +23,7 @@
       (click)="removeRequested.emit(track())"
       [attr.aria-label]="'Supprimer ' + track().title"
     >
-      ✕
+      ×
     </button>
   </div>
 </article>

@@ -445,3 +445,33 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 **Ce que chaque membre sait maintenant expliquer sans l'agent.**
 - Pourquoi on valide une maquette avant de coder : changer une couleur, une taille ou une mise en page se fait en quelques secondes dans Figma, contre plusieurs fichiers CSS/HTML à retoucher dans le code.
 - Ce qu'est une variable de design (ici la palette) : une valeur nommée, définie une fois, que tous les éléments référencent, ce qui permet de changer le thème en un seul endroit.
+
+## Implémentation Angular du design « Desert Sessions » (4 pages)
+
+**Objectif.** Traduire en code la maquette Figma validée : une direction visuelle unique (rouge plat, noir, gothique) sur Connexion, Inscription, Profil et Bibliothèque, en remplaçant les anciens thèmes par page (Rage, QOTSA, Metallica, Fleetwood) qui reposaient sur une classe `theme-*` posée sur `<body>`.
+
+**Prompt principal.** Validation de la maquette puis « reprends » : implémenter les quatre pages à partir du fichier Figma.
+
+**Ce qui a été fait.**
+- `styles.css` : le « design system » est global : variables CSS (`--red`, `--black`, `--bone`, `--font-display`...) et classes partagées `.ds-field`, `.ds-label`, `.ds-btn`, `.ds-btn-ghost`, `.ds-tag`, `.ds-link`, `.error`, `.skeleton`, `.spinner`. Chaque page ne garde que sa mise en page.
+- Deux petits composants décoratifs réutilisables : `TridentComponent` (trident dessiné en SVG ; affiche `public/trident.png` s'il existe, sinon retombe sur le SVG grâce à `(error)`) et `DotsComponent` (grille de points).
+- Pages Connexion, Inscription (composition en miroir), Profil et Bibliothèque restylées. Barre de navigation refaite (pastille du nom d'utilisateur, soulignement animé du lien actif).
+- Bibliothèque : deux colonnes (import / pistes), cartes noires, bouton « Lire » devenant « Pause » avec contour sur la piste en cours, paginateur Material recoloré via ses variables CSS, barre « En lecture » collée en bas (`position: sticky`) contenant le lecteur natif.
+- Suppression du code `document.body.classList.add/remove('theme-...')` dans les composants de page : plus aucun effet de bord global.
+- Aucun changement de logique : filtre, pagination serveur, lecture Blob + ObjectURL (révoquée à la destruction), upload avec progression et validation, suppression.
+
+**Image de la pochette.** L'étudiant a demandé d'utiliser le vrai trident de la pochette puis a fourni sa propre découpe. Je ne reproduis ni ne copie l'illustration : le composant accepte un fichier `public/trident.png` que l'étudiant dépose lui-même, ignoré par Git (jamais poussé). Sans lui, le trident vectoriel dessiné par l'agent est utilisé.
+
+**Pièges rencontrés.**
+- Le sélecteur global `header {}` du `styles.css` s'appliquait à un `<header>` de la page Bibliothèque (fond et bordure parasites) : remplacé par un `<div>`.
+- `overflow: hidden` sur un parent casse `position: sticky` (le parent devient le conteneur de défilement) : remplacé par `overflow: clip`.
+- Sur Inscription, la grille de points chevauchait le formulaire sur les écrans peu hauts : masquée sous 820 px de hauteur.
+- Le titre « Connexion » paraissait pâle sur une capture : simple capture prise pendant l'animation d'apparition (vérifié ensuite : opacité 1, couleur `#0a0a0a`).
+- Backend injoignable pendant les tests (réseau différent de celui autorisé par MongoDB Atlas, puis ancien processus occupant le port 3000) : retour au bon réseau, aucun changement de code.
+
+**Vérifications réalisées (serveurs réels).** Les quatre pages en 1440 px ; Bibliothèque : chargement de la liste, lecture d'une piste (carte « Pause », barre en bas), pagination vers la page 2 (`page=2`, « 6 – 6 sur 6 »), console sans erreur applicative (seule la 404 attendue de `trident.png` absent) ; Connexion → Bibliothèque en mobile 375 px : une colonne, aucun débordement horizontal. Non retestés à nouveau dans cette passe : upload, suppression et filtre (code inchangé).
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi les couleurs sont des variables CSS globales et les boutons/champs des classes partagées : changer le thème se fait à un seul endroit.
+- Pourquoi un composant décoratif (`trident`, `dots`) plutôt que de copier le SVG dans chaque page.
+- Pourquoi `sticky` ne fonctionne pas avec `overflow: hidden` sur un ancêtre.

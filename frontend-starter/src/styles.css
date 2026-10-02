@@ -1,47 +1,186 @@
+/* ==========================================================================
+   Desert Sessions : rouge plat + noir, un seul système pour toute l'appli.
+   Ce fichier contient les variables, la barre de navigation et les éléments
+   partagés (champs, boutons, messages). Chaque page ne garde que sa mise en page.
+   ========================================================================== */
+
 :root {
-  font-family: Inter, system-ui, sans-serif;
-  color: #17312a;
-  background: #f3f7f5;
+  --red: #d01324;
+  --red-deep: #a10d1a;
+  --black: #0a0a0a;
+  --charcoal: #161616;
+  --bone: #f4e9da;
+
+  --font-ui: 'Archivo Narrow', system-ui, sans-serif;
+  --font-display: 'Pirata One', Georgia, serif;
+  --gutter: clamp(20px, 4.5vw, 64px);
+  --nav-height: 76px;
+
+  font-family: var(--font-ui);
+  color: var(--black);
+  background: var(--red);
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; overflow-x: hidden; }
+body { margin: 0; overflow-x: hidden; background: var(--red); }
+main { display: block; }
+h1, h2, h3 { margin: 0; font-weight: 400; }
+a { color: inherit; }
 
-/* Micro-interactions cohérentes sur toute l'appli : chaque thème garde ses propres
-   couleurs, seule la fluidité des changements d'état est mutualisée ici. */
-button, input, a, .track-card, .track-actions .play, .track-actions .delete {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
-    box-shadow 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
-}
-button:active:not(:disabled) { transform: scale(0.97); }
+:focus-visible { outline: 3px solid var(--bone); outline-offset: 3px; }
 
-::selection { background: #1d755e; color: white; }
+::selection { background: var(--black); color: var(--red); }
+::-webkit-scrollbar { width: 12px; }
+::-webkit-scrollbar-track { background: var(--red-deep); }
+::-webkit-scrollbar-thumb { background: var(--black); }
 
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.25); border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.4); }
+/* ---- Barre de navigation ------------------------------------------------ */
 
-@keyframes pageEnter {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--nav-height);
+  padding: 0 var(--gutter);
+  background: var(--red);
+  border-bottom: 3px solid var(--black);
 }
-@keyframes shake {
-  10%, 90% { transform: translateX(-1px); }
-  20%, 80% { transform: translateX(2px); }
-  30%, 50%, 70% { transform: translateX(-4px); }
-  40%, 60% { transform: translateX(4px); }
+
+header .brand { font-family: var(--font-display); font-size: 2rem; font-weight: 400; }
+
+nav { display: flex; align-items: center; gap: 2rem; }
+
+nav a {
+  position: relative;
+  padding-bottom: 4px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
 }
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
+
+nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: 0;
+  height: 3px;
+  background: var(--black);
+  transition: right 0.25s ease;
 }
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+
+nav a:hover::after,
+nav a.active-link::after { right: 0; }
+
+/* ---- Éléments partagés -------------------------------------------------- */
+
+/* Champ de formulaire : étiquette en capitales + saisie soulignée. */
+.ds-field { display: grid; gap: 10px; margin: 0 0 44px; }
+
+.ds-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
+
+.ds-field input {
+  width: 100%;
+  padding: 0.3rem 0;
+  font: 400 1.75rem var(--font-ui);
+  color: var(--black);
+  background: transparent;
+  border: 0;
+  border-bottom: 3px solid var(--black);
+  border-radius: 0;
+}
+
+.ds-field input::placeholder { color: var(--black); opacity: 0.45; }
+.ds-field input:focus { outline: none; border-bottom-width: 6px; padding-bottom: 0; }
+
+.ds-field input[type='file'] { font-size: 1rem; padding: 0.5rem 0; }
+.ds-field input[type='file']::file-selector-button {
+  margin-right: 0.9rem;
+  padding: 0.5rem 0.9rem;
+  font: 700 0.8rem var(--font-ui);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--black);
+  background: transparent;
+  border: 2px solid var(--black);
+  cursor: pointer;
+}
+
+/* Bouton principal : noir, texte rouge, ombre dure. */
+.ds-btn {
+  padding: 1.1rem 2.7rem;
+  font: 700 1.1rem var(--font-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--red);
+  background: var(--black);
+  border: 0;
+  box-shadow: 6px 6px 0 var(--red-deep);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.ds-btn:hover:not(:disabled) { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--red-deep); }
+.ds-btn:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 3px 3px 0 var(--red-deep); }
+.ds-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Bouton secondaire : simple contour. */
+.ds-btn-ghost {
+  padding: 0.55rem 1.1rem;
+  font: 700 0.9rem var(--font-ui);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--black);
+  background: transparent;
+  border: 2px solid var(--black);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.ds-btn-ghost:hover:not(:disabled) { background: var(--black); color: var(--red); }
+.ds-btn-ghost:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.ds-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  border: 2px solid var(--black);
+}
+
+.ds-link { font-weight: 700; font-size: 1.15rem; text-decoration: underline; text-underline-offset: 4px; }
+
+.error {
+  margin: 1rem 0;
+  padding: 0.6rem 0.9rem;
+  font-weight: 700;
+  color: var(--bone);
+  background: var(--black);
+  border-left: 6px solid var(--bone);
+  animation: shake 0.4s ease;
+}
+
+.field-error {
+  width: fit-content;
+  padding: 2px 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--bone);
+  background: var(--black);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(10, 10, 10, 0.12) 25%, rgba(10, 10, 10, 0.24) 37%, rgba(10, 10, 10, 0.12) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
 }
 
 .spinner {
@@ -51,52 +190,27 @@ button:active:not(:disabled) { transform: scale(0.97); }
   border: 2px solid currentColor;
   border-right-color: transparent;
   border-radius: 50%;
-  animation: spin 0.7s linear infinite;
   vertical-align: -0.15em;
+  animation: spin 0.7s linear infinite;
 }
 
-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 5vw; color: white; background: #123d32; }
-header small { opacity: 0.7; }
-nav { display: flex; align-items: center; gap: 1rem; }
-nav a { position: relative; text-decoration: none; padding-bottom: 3px; }
-nav a::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 100%; bottom: 0;
-  height: 2px;
-  background: currentColor;
-  transition: right 0.25s ease;
-}
-nav a:hover::after, nav a.active-link::after { right: 0; }
-a { color: #1d755e; }
-header a { color: white; }
-main { max-width: 1050px; margin: 2rem auto; padding: 0 1rem; }
-.hero { margin-bottom: 1rem; padding: 2rem; color: white; background: linear-gradient(120deg, #123d32, #276c57); border-radius: 20px; }
-.eyebrow { letter-spacing: 0.15em; font-size: 0.75rem; }
-.grid { display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; }
-.card { padding: 1.3rem; background: white; border-radius: 16px; box-shadow: 0 8px 25px #17312a14; }
-.card form, label { display: grid; gap: 0.4rem; }
-label { margin: 0.8rem 0; }
-input { padding: 0.75rem; border: 1px solid #b8cbc5; border-radius: 8px; }
-button { padding: 0.7rem 1rem; color: white; background: #1d755e; border: 0; border-radius: 8px; cursor: pointer; }
-button:disabled { opacity: 0.45; }
-.row, .track, .pager { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-.track { padding: 0.8rem 0; border-bottom: 1px solid #e1ebe7; }
-.track small { display: block; color: #61756f; }
-.pager { margin: 1rem 0; }
-audio { width: 100%; }
-.error { color: #a33; }
-.field-error { color: #a33; font-size: 0.85rem; margin-top: -0.2rem; }
+/* ---- Animations --------------------------------------------------------- */
 
-/* Thèmes rock : chaque page pousse son propre habillage plein écran (voir son .css),
-   la classe sur <body> ne sert plus ici qu'à accorder la bordure du header. */
-body.theme-ratm header { border-bottom: 6px solid #c8102e; }
-body.theme-qotsa header { border-bottom: 6px solid #0a0a0a; }
-body.theme-metallica header { border-bottom: 6px solid #9a9a9a; }
-body.theme-fleetwood header { border-bottom: 6px solid #7a4a1f; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
 
 @media (max-width: 720px) {
-  header, .grid { display: block; }
-  nav { margin-top: 1rem; }
-  .grid .card { margin-bottom: 1rem; }
+  header { height: auto; flex-wrap: wrap; gap: 0.6rem; padding: 0.8rem var(--gutter); }
+  nav { gap: 1rem; flex-wrap: wrap; }
 }

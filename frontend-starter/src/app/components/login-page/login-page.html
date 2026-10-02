@@ -1,27 +1,25 @@
-<section class="wall">
+<section class="screen">
+  <app-trident class="trident" />
+  <app-dots class="dots" />
   <h1>Connexion</h1>
 
-  <div class="flyer">
-    <span class="tape tape-left"></span>
-    <span class="tape tape-right"></span>
-    <span class="stamp">ACCÈS</span>
-
+  <div class="panel">
     <form [formGroup]="form" (ngSubmit)="submit()">
-      <label>
-        Email
+      <label class="ds-field">
+        <span class="ds-label">Email</span>
         <input type="email" formControlName="email" />
         @if (form.controls.email.invalid && form.controls.email.touched) {
           <small class="field-error">Email invalide</small>
         }
       </label>
-      <label>
-        Mot de passe
+      <label class="ds-field">
+        <span class="ds-label">Mot de passe</span>
         <input type="password" formControlName="password" />
         @if (form.controls.password.invalid && form.controls.password.touched) {
           <small class="field-error">Mot de passe requis</small>
         }
       </label>
-      <button type="submit" [disabled]="form.invalid || submitting()">
+      <button type="submit" class="ds-btn" [disabled]="form.invalid || submitting()">
         @if (submitting()) {
           <span class="spinner"></span> Connexion…
         } @else {
@@ -29,9 +27,10 @@
         }
       </button>
     </form>
+
     @if (error()) {
-      <p class="error">{{ error() }}</p>
+      <p class="error" role="alert">{{ error() }}</p>
     }
-    <p><a routerLink="/register">Créer un compte</a></p>
+    <p><a class="ds-link" routerLink="/register">Créer un compte</a></p>
   </div>
 </section>

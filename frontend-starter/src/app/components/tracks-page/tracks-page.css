@@ -1,143 +1,149 @@
-/* Pochette de vinyle ouverte façon "liner notes" : typographie éditoriale,
-   cartes de pistes en grille. Le formulaire d'envoi et les cartes ont leur propre
-   feuille de style (track-upload.css, track-card.css). */
-
 :host {
   display: block;
-  width: 100vw;
+  min-height: calc(100vh - var(--nav-height));
+}
+
+.screen {
   position: relative;
-  left: 50%;
-  margin-left: -50vw;
-  min-height: calc(100vh - 72px);
-  background: #f1e6d3;
-  color: #3a2a18;
-  font-family: 'Cormorant Garamond', serif;
-  padding: 5vw 8vw 5vw;
+  min-height: inherit;
+  padding: 3rem var(--gutter) 0;
+  /* clip (et non hidden) : garde le `sticky` de la barre de lecture fonctionnel */
+  overflow: clip;
 }
 
-.sleeve-head {
-  border-bottom: 2px solid #3a2a18;
-  padding-bottom: 1.6rem;
-  margin-bottom: 2.6rem;
-  animation: fadeInUp 0.6s ease both;
+.trident {
+  position: absolute;
+  top: 1rem;
+  right: 1vw;
+  width: min(30vw, 420px);
 }
 
-.sleeve-head .eyebrow {
-  font-family: 'Pacifico', cursive;
-  font-size: 1.15rem;
-  color: #8a5a2a;
-  margin: 0 0 0.2rem;
+.intro-block {
+  position: relative;
+  margin-bottom: 2.4rem;
+  animation: fadeInUp 0.5s ease both;
 }
 
-.sleeve-head h1 {
-  font-size: clamp(2.8rem, 8vw, 5.4rem);
-  font-weight: 600;
+h1 {
+  margin: 1rem 0 0.4rem;
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 8rem);
+  line-height: 1;
+}
+
+.intro {
   margin: 0;
-  letter-spacing: -0.01em;
-}
-
-.sleeve-head .intro {
-  font-size: 1.15rem;
+  font-size: 1.3rem;
   font-style: italic;
-  color: #5c4426;
-  margin: 0.6rem 0 0;
 }
 
-.sleeve-body {
+h2 {
+  margin: 0 0 1.4rem;
+  font-size: 1.3rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.columns {
+  position: relative;
+  padding-bottom: 3rem;
   display: grid;
-  grid-template-columns: 1fr 1.6fr;
-  gap: 5vw;
+  grid-template-columns: 380px 1fr;
+  gap: 3rem;
+  align-items: start;
 }
 
-.side {
-  opacity: 0;
-  animation: fadeInUp 0.6s ease both;
-}
-
-.side-a { animation-delay: 0.1s; }
-.side-b { animation-delay: 0.2s; }
-
-.side h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0 0 1rem;
-}
-
-.side-b .row {
+.list-head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
+  gap: 1rem;
 }
 
-.side-b button {
-  background: #3a2a18;
-  color: #f1e6d3;
-  border: none;
-  border-radius: 0;
-  padding: 0.6rem 1.4rem;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.05rem;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-}
-
-.side-b button:hover:not(:disabled) {
-  background: #5c4426;
-}
-
-.side-b button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.filter-input {
-  width: 100%;
-  margin: 1rem 0;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid #8a5a2a;
-  border-radius: 0;
-  padding: 0.4rem 0;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.1rem;
-  color: #3a2a18;
-}
-
-.filter-input:focus {
-  outline: none;
-  border-color: #3a2a18;
+.filter {
+  margin-bottom: 1.6rem;
 }
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-  margin: 1.2rem 0;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1.1rem;
 }
 
 .skeleton-card {
-  border: 1px solid #ecd9b8;
-  border-radius: 10px;
-  height: 148px;
-  background-image: linear-gradient(90deg, #fffaf0 25%, #f3e6cc 37%, #fffaf0 63%);
-  background-size: 400% 100%;
-  animation: shimmer 1.4s ease infinite;
+  height: 200px;
 }
 
-.now-playing {
-  margin: 1.2rem 0 0;
-  font-size: 0.95rem;
-  color: #5c4426;
+.empty {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+/* mat-paginator : fond transparent, texte et icônes noirs pour se fondre dans le rouge. */
+mat-paginator {
+  --mat-paginator-container-background-color: transparent;
+  --mat-paginator-container-text-color: var(--black);
+  --mat-paginator-enabled-icon-color: var(--black);
+  --mat-paginator-disabled-icon-color: rgba(10, 10, 10, 0.35);
+  margin-top: 1.2rem;
+  font-family: var(--font-ui);
+}
+
+.playback-error {
+  position: relative;
+  margin-top: 1.5rem;
+}
+
+/* Barre de lecture collée en bas de l'écran tant qu'une piste est chargée. */
+.player-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  margin: 3rem calc(var(--gutter) * -1) 0;
+  padding: 0.9rem var(--gutter);
+  background: var(--black);
+  color: var(--bone);
+  animation: fadeInUp 0.35s ease both;
+}
+
+.player-label {
+  color: var(--red);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.player-title {
+  font-size: 1.3rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 audio {
-  width: 100%;
-  margin-top: 0.6rem;
-  animation: fadeInUp 0.4s ease both;
+  flex: 1;
+  min-width: 0;
+  height: 40px;
 }
 
-@media (max-width: 760px) {
-  .sleeve-body {
+@media (max-width: 960px) {
+  .columns {
     grid-template-columns: 1fr;
+    gap: 2.4rem;
+  }
+
+  .trident {
+    opacity: 0.25;
+  }
+
+  .player-bar {
+    flex-wrap: wrap;
+  }
+
+  audio {
+    flex-basis: 100%;
   }
 }

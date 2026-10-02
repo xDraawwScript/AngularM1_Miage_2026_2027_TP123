@@ -1,0 +1,13 @@
+:host {
+  display: block;
+  color: var(--black);
+  pointer-events: none;
+  user-select: none;
+}
+
+img,
+svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}

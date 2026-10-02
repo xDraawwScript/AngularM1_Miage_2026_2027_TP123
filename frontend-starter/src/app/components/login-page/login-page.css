@@ -1,192 +1,76 @@
-/* Mur en béton + flyer photocopié punaisé dessus : évoque un tract collé dans la rue,
-   sans reprendre la pochette d'un album. Casse volontairement le cliché "carte centrée
-   sur fond dégradé" : composition asymétrique, titre géant en écriture verticale. */
+/* Trident et gros titre en décor, formulaire à droite. */
 
 :host {
   display: block;
-  width: 100vw;
+  min-height: calc(100vh - var(--nav-height));
+  overflow: hidden;
+}
+
+.screen {
   position: relative;
-  left: 50%;
-  margin-left: -50vw;
-  min-height: calc(100vh - 72px);
-  font-family: 'Courier Prime', monospace;
-  background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 5px),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 6px),
-    linear-gradient(155deg, #d3d3ce, #a6a69f 55%, #85857d);
-}
-
-.wall {
-  display: grid;
-  grid-template-columns: minmax(90px, 22vw) 1fr;
-  align-items: center;
+  display: flex;
+  justify-content: flex-end;
   min-height: inherit;
-  padding: 3vw 5vw 3vw 0;
-  gap: 2vw;
+  padding: 9vh var(--gutter) 0;
 }
 
-@keyframes ratmTitleEnter {
-  from { opacity: 0; transform: rotate(180deg) translateY(-40px); }
-  to { opacity: 1; transform: rotate(180deg) translateY(0); }
+.trident {
+  position: absolute;
+  top: 4vh;
+  left: 2vw;
+  width: min(56vw, 760px);
 }
 
-@keyframes flyerEnter {
-  from { opacity: 0; transform: rotate(1.1deg) translateY(24px) scale(0.96); }
-  to { opacity: 1; transform: rotate(1.1deg) translateY(0) scale(1); }
+.dots {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 4vh;
 }
 
 h1 {
-  writing-mode: vertical-rl;
-  font-family: 'Big Shoulders Stencil', sans-serif;
-  font-weight: 800;
-  font-size: clamp(3.5rem, 11vw, 9rem);
-  line-height: 0.82;
-  letter-spacing: 0.05em;
-  color: #1a1a1a;
-  text-shadow: 5px 0 0 rgba(200, 16, 46, 0.45);
-  justify-self: center;
-  margin: 0;
-  animation: ratmTitleEnter 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  position: absolute;
+  left: var(--gutter);
+  bottom: 2vh;
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 10vw, 9.4rem);
+  line-height: 1;
+  animation: fadeInUp 0.6s ease both;
 }
 
-.flyer {
+.panel {
   position: relative;
-  background: #f4f1ea;
-  color: #1a1a1a;
-  max-width: 420px;
-  padding: 2.4rem 2.2rem 2rem;
-  clip-path: polygon(0 0, 100% 0, 100% 97%, 96% 100%, 4% 98%, 0% 100%);
-  box-shadow: 12px 16px 0 rgba(0, 0, 0, 0.28);
-  animation: flyerEnter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  width: min(480px, 100%);
+  animation: fadeInUp 0.6s ease both;
   animation-delay: 0.1s;
 }
 
-.tape {
-  position: absolute;
-  top: -13px;
-  width: 68px;
-  height: 24px;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+.panel .ds-btn {
+  margin-top: 4px;
 }
 
-.tape-left {
-  left: 18px;
-  transform: rotate(-9deg);
-}
-
-.tape-right {
-  right: 26px;
-  transform: rotate(7deg);
-}
-
-.stamp {
-  position: absolute;
-  top: -24px;
-  right: -16px;
-  width: 78px;
-  height: 78px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 3px dashed #c8102e;
-  border-radius: 50%;
-  color: #c8102e;
-  background: rgba(244, 241, 234, 0.92);
-  font-family: 'Big Shoulders Stencil', sans-serif;
-  font-size: 0.82rem;
-  letter-spacing: 0.08em;
-  transform: rotate(-13deg);
-}
-
-.flyer form {
-  margin-top: 0.4rem;
-}
-
-.flyer label {
-  display: block;
-  text-transform: uppercase;
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  color: #4a4a45;
-  margin: 1.1rem 0 0.3rem;
-}
-
-.flyer input {
-  width: 100%;
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid #1a1a1a;
-  border-radius: 0;
-  padding: 0.45rem 0.05rem;
-  font-family: 'Courier Prime', monospace;
-  font-size: 1rem;
-  color: #1a1a1a;
-}
-
-.flyer input:focus {
-  outline: none;
-  border-color: #c8102e;
-}
-
-.flyer button {
-  margin-top: 1.6rem;
-  width: 100%;
-  background: #1a1a1a;
-  color: #f4f1ea;
-  border: none;
-  border-radius: 0;
-  padding: 0.85rem;
-  font-family: 'Big Shoulders Stencil', sans-serif;
-  font-size: 1.15rem;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-}
-
-.flyer button:hover:not(:disabled) {
-  background: #c8102e;
-}
-
-.flyer button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.flyer .error {
-  color: #a3121f;
-  font-size: 0.85rem;
-  font-weight: 700;
-  animation: shake 0.4s ease;
-}
-
-.flyer .field-error {
-  color: #a3121f;
-  font-size: 0.8rem;
-}
-
-.flyer .spinner {
-  margin-right: 0.4rem;
-}
-
-.flyer a {
-  color: #1a1a1a;
-  text-decoration: underline;
-}
-
-@media (max-width: 760px) {
-  .wall {
-    grid-template-columns: 1fr;
-    padding: 10vw 7vw;
+@media (max-width: 820px) {
+  .screen {
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 2rem;
+    padding-bottom: 12rem;
   }
 
+  .trident {
+    top: auto;
+    bottom: 1rem;
+    left: auto;
+    right: -10vw;
+    width: 70vw;
+    opacity: 0.9;
+  }
+
+  .dots,
   h1 {
-    writing-mode: horizontal-tb;
-    font-size: clamp(2.6rem, 13vw, 4rem);
-    margin: 0 0 1.6rem;
-    animation: fadeInUp 0.6s ease both;
+    display: none;
   }
 
-  .flyer {
-    max-width: 100%;
+  .panel {
+    width: 100%;
   }
 }

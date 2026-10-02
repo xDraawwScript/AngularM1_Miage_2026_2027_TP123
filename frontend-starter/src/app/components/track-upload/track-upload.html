@@ -1,5 +1,11 @@
-<label>Titre<input [formControl]="title" /></label>
-<label>Fichier audio<input type="file" accept="audio/*" (change)="choose($event)" /></label>
+<label class="ds-field">
+  <span class="ds-label">Titre</span>
+  <input [formControl]="title" />
+</label>
+<label class="ds-field">
+  <span class="ds-label">Fichier audio</span>
+  <input type="file" accept="audio/*" (change)="choose($event)" />
+</label>
 
 @if (error()) {
   <p class="error" role="alert">{{ error() }}</p>
@@ -14,7 +20,7 @@
   </div>
 }
 
-<button type="button" (click)="upload()" [disabled]="!file() || uploading()">
+<button type="button" class="ds-btn" (click)="upload()" [disabled]="!file() || uploading()">
   @if (uploading()) {
     <span class="spinner"></span> Envoi…
   } @else {

@@ -1,105 +1,104 @@
-:host {
-  display: block;
-}
+/* Carte noire, texte os, libellés rouges : le "négatif" de la page rouge. */
 
 .track-card {
-  background: #fffaf0;
-  border: 1px solid #d8b98a;
-  border-radius: 10px;
-  padding: 1rem 1.1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  opacity: 0;
-  animation: fadeInUp 0.45s ease both;
+  height: 100%;
+  padding: 1.2rem 1.3rem;
+  background: var(--black);
+  color: var(--bone);
+  outline: 3px solid transparent;
+  outline-offset: -3px;
+  transition: transform 0.15s ease, outline-color 0.15s ease;
+  animation: fadeInUp 0.4s ease both;
 }
 
-/* Apparition en cascade : la carte est seule dans son composant, c'est donc
-   l'élément hôte qui connaît sa position dans la grille. */
-:host(:nth-child(1)) .track-card { animation-delay: 0.05s; }
-:host(:nth-child(2)) .track-card { animation-delay: 0.1s; }
-:host(:nth-child(3)) .track-card { animation-delay: 0.15s; }
-:host(:nth-child(4)) .track-card { animation-delay: 0.2s; }
-:host(:nth-child(5)) .track-card { animation-delay: 0.25s; }
-
 .track-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 24px rgba(58, 42, 24, 0.18);
-  border-color: #b8895a;
+  transform: translateY(-3px);
+}
+
+.track-card.playing {
+  outline-color: var(--bone);
 }
 
 h3 {
   margin: 0;
-  font-size: 1.2rem;
-  font-weight: 600;
-  line-height: 1.2;
+  font-size: 1.5rem;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
 .original {
-  margin: 0;
-  color: #6b5236;
-  font-size: 0.82rem;
-  word-break: break-word;
+  margin: 0.3rem 0 1rem;
+  font-size: 0.85rem;
+  opacity: 0.6;
+  overflow-wrap: anywhere;
 }
 
 .specs {
-  margin: 0;
+  margin: 0 0 1.2rem;
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.15rem 0.6rem;
-  font-size: 0.82rem;
+  gap: 0.25rem;
 }
 
-.specs dt {
-  color: #8a5a2a;
+.specs div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+dt {
+  color: var(--red);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.7rem;
 }
 
-.specs dd {
+dd {
   margin: 0;
-  color: #3a2a18;
 }
 
 .track-actions {
   display: flex;
-  align-items: center;
   gap: 0.6rem;
-  margin-top: 0.4rem;
+  margin-top: auto;
+}
+
+button {
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 .play {
   flex: 1;
-  background: none;
-  border: 1px solid #3a2a18;
-  border-radius: 999px;
-  padding: 0.4rem 0.8rem;
-  color: #3a2a18;
-  cursor: pointer;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 0.95rem;
+  padding: 0.65rem 1rem;
+  background: var(--red);
+  color: var(--black);
+  border: 0;
+}
+
+.playing .play {
+  background: var(--bone);
 }
 
 .play:hover {
-  background: #3a2a18;
-  color: #f1e6d3;
+  filter: brightness(1.1);
 }
 
 .delete {
-  background: none;
-  border: 1px solid #8a3a2a;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  color: #8a3a2a;
-  cursor: pointer;
-  font-size: 0.85rem;
+  width: 2.8rem;
+  background: transparent;
+  color: var(--bone);
+  border: 2px solid var(--bone);
+  font-size: 1.4rem;
   line-height: 1;
 }
 
 .delete:hover {
-  background: #8a3a2a;
-  color: #f1e6d3;
-  transform: scale(1.08);
+  background: var(--bone);
+  color: var(--black);
 }

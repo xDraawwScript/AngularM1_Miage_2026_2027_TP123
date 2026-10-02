@@ -1,0 +1,20 @@
+@if (useImage()) {
+  <img src="trident.png" alt="" (error)="useImage.set(false)" />
+} @else {
+  <svg viewBox="-20 110 1060 740" aria-hidden="true" focusable="false">
+    <!-- Dessiné à l'horizontale (tête à gauche, fourche à droite), puis incliné de 32°. -->
+    <g transform="rotate(32 0 175)" fill="currentColor">
+      <polygon points="70,163 570,163 570,187 70,187" />
+      <polygon points="0,175 120,131 86,175 120,219" />
+      <path
+        d="M 560 175 C 650 175 660 50 770 50 L 880 50 M 560 175 C 650 175 660 300 770 300 L 880 300"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="26"
+        stroke-linejoin="miter"
+      />
+      <polygon points="850,0 1000,50 850,100 886,50" />
+      <polygon points="850,350 1000,300 850,250 886,300" />
+    </g>
+  </svg>
+}

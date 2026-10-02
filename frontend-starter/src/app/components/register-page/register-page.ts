@@ -1,24 +1,18 @@
-import { Component, inject, OnDestroy, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../shared/services/auth.service';
+import { DotsComponent } from '../dots/dots';
+import { TridentComponent } from '../trident/trident';
 
 @Component({
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TridentComponent, DotsComponent],
   templateUrl: './register-page.html',
   styleUrl: './register-page.css',
 })
-export class RegisterPageComponent implements OnDestroy {
+export class RegisterPageComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-
-  constructor() {
-    document.body.classList.add('theme-qotsa');
-  }
-
-  ngOnDestroy(): void {
-    document.body.classList.remove('theme-qotsa');
-  }
 
   readonly error = signal('');
   readonly submitting = signal(false);

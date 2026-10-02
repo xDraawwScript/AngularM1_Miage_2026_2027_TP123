@@ -1,13 +1,14 @@
-import { Component, inject, OnDestroy, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../shared/services/auth.service';
+import { TridentComponent } from '../trident/trident';
 
 @Component({
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TridentComponent],
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.css',
 })
-export class ProfilePageComponent implements OnDestroy {
+export class ProfilePageComponent {
   readonly auth = inject(AuthService);
   readonly form = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -19,12 +20,7 @@ export class ProfilePageComponent implements OnDestroy {
   readonly error = signal('');
 
   constructor() {
-    document.body.classList.add('theme-metallica');
     this.load();
-  }
-
-  ngOnDestroy(): void {
-    document.body.classList.remove('theme-metallica');
   }
 
   load(): void {
