@@ -14,13 +14,13 @@ export class TrackService {
     });
   }
 
-  /** `reportProgress`/`observe: 'events'` exposent la progression de l'upload. */
+  /** `reportUploadProgress`/`observe: 'events'` exposent la progression de l'upload (backend XHR requis, voir main.ts). */
   upload(file: File, title: string) {
     const body = new FormData();
     body.append('audio', file);
     body.append('title', title);
     return this.http.post<Track>('/api/tracks', body, {
-      reportProgress: true,
+      reportUploadProgress: true,
       observe: 'events',
     });
   }

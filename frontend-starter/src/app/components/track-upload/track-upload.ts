@@ -1,8 +1,11 @@
-import { Component, inject, output, signal } from '@angular/core';
-import { HttpEventType } from '@angular/common/http';
+import { Component, computed, inject, output, signal } from '@angular/core';
+import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TrackService } from '../../shared/services/track.service';
 import { validateAudioFile } from '../../shared/utils/audio-file';
+
+/** Les quatre états possibles de l'envoi : un seul à la fois, donc jamais d'incohérence. */
+export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
 /** Formulaire d'envoi d'un fichier audio : choix, validation, progression, résultat. */
 @Component({
@@ -19,9 +22,11 @@ export class TrackUploadComponent {
 
   readonly title = new FormControl('', { nonNullable: true });
   readonly file = signal<File | null>(null);
-  readonly uploading = signal(false);
-  /** Pourcentage d'envoi, de 0 à 100. */
-  readonly progress = signal(0);
+
+  readonly status = signal<UploadStatus>('idle');
+  readonly uploading = computed(() => this.status() === 'uploading');
+  /** Pourcentage d'envoi (0 à 100), ou null si le navigateur ne connaît pas la taille totale. */
+  readonly progress = signal<number | null>(0);
   readonly error = signal('');
   readonly success = signal('');
 
@@ -33,6 +38,7 @@ export class TrackUploadComponent {
     const selected = input.files?.[0];
     this.fileInput = input;
     this.error.set('');
+    this.status.set('idle');
     this.file.set(null);
 
     if (!selected) return;
@@ -40,6 +46,7 @@ export class TrackUploadComponent {
     const problem = validateAudioFile(selected);
     if (problem) {
       this.error.set(problem);
+      this.status.set('error');
       input.value = '';
       return;
     }
@@ -51,31 +58,49 @@ export class TrackUploadComponent {
     const file = this.file();
     if (!file || this.uploading()) return; // pas de double envoi
 
-    this.uploading.set(true);
+    this.status.set('uploading');
     this.progress.set(0);
     this.error.set('');
     this.success.set('');
+    // Pendant l'envoi, on ne peut plus modifier le titre (le champ fichier est
+    // désactivé dans le template). `title.value` reste lisible même désactivé.
+    this.title.disable();
 
+    // Contrairement à un POST classique (une seule valeur : la réponse), cet
+    // Observable émet plusieurs événements : on les distingue grâce à `event.type`.
     this.service.upload(file, this.title.value || file.name).subscribe({
       next: (event) => {
-        if (event.type === HttpEventType.UploadProgress && event.total) {
-          this.progress.set(Math.round((100 * event.loaded) / event.total));
-        } else if (event.type === HttpEventType.Response) {
-          this.onSuccess(event.body?.title ?? file.name);
+        switch (event.type) {
+          case HttpEventType.Sent:
+            this.progress.set(0);
+            break;
+          case HttpEventType.UploadProgress:
+            // `total` peut manquer : on affiche alors une barre indéterminée.
+            this.progress.set(event.total ? Math.round((100 * event.loaded) / event.total) : null);
+            break;
+          case HttpEventType.Response:
+            this.onSuccess(event.body?.title ?? file.name);
+            break;
         }
       },
-      error: (error: { error?: { message?: string } }) => {
-        console.error('[TrackUpload] Envoi impossible', error);
-        this.uploading.set(false);
+      error: (error: HttpErrorResponse) => {
+        console.error('[TrackUpload] Envoi impossible', error.status);
+        this.status.set('error');
+        this.progress.set(0);
+        this.title.enable();
         this.error.set(error.error?.message ?? "Échec de l'envoi, réessayez.");
       },
     });
   }
 
   private onSuccess(title: string): void {
-    this.uploading.set(false);
+    this.status.set('success');
+    this.progress.set(100);
     this.success.set(`« ${title} » a bien été envoyée.`);
-    setTimeout(() => this.success.set(''), 4000);
+    setTimeout(() => {
+      if (this.status() === 'success') this.status.set('idle');
+      this.success.set('');
+    }, 4000);
     this.reset();
     this.uploaded.emit();
   }
@@ -85,6 +110,7 @@ export class TrackUploadComponent {
    * data-binding (restriction des navigateurs) : il faut toucher son `value`.
    */
   private reset(): void {
+    this.title.enable();
     this.title.setValue('');
     this.file.set(null);
     if (this.fileInput) this.fileInput.value = '';

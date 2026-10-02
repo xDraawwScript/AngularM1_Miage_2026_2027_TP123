@@ -16,6 +16,12 @@
   font-weight: 700;
 }
 
+.upload-progress span {
+  min-width: 6.5rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 progress {
   flex: 1;
   height: 10px;

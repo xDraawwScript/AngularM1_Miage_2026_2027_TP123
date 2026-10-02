@@ -503,3 +503,28 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 - Pourquoi la suppression passe par un service (testable, un seul endroit qui connaît l'URL).
 - Comment le backend protège la suppression (JWT puis filtre `ownerId`, 404 volontaire).
 - Pourquoi on bloque pendant l'appel (un clic = une requête, sinon le second renvoie 404).
+
+## Mission 6 — Progression de l'upload
+
+**Objectif.** Afficher la progression de l'upload et distinguer au minimum : pas d'upload, upload en cours avec pourcentage, réussite, échec ; bloquer les contrôles et la double soumission pendant l'envoi ; ne jamais journaliser mot de passe ni JWT.
+
+**Prompt principal.** Texte du sujet TP3 (Mission 6), plan validé avant codage.
+
+**Constat avant modification.** `track-upload` avait déjà un pourcentage, mais l'état était éparpillé dans plusieurs booléens, le titre et le champ fichier restaient modifiables pendant l'envoi, et le cas « taille totale inconnue » n'était pas géré.
+
+**Ce qui a été fait.**
+- `track-upload.ts` : un **état explicite** `status` (`idle | uploading | success | error`, type `UploadStatus`), un seul à la fois ; `uploading` est un `computed` dessus. Le `subscribe` distingue les événements par `event.type` (`Sent` → 0 %, `UploadProgress` → `Math.round(100 * loaded / total)` ou barre indéterminée si `total` manque, `Response` → succès). En erreur : état `error`, progression remise à 0, message du serveur, contrôles réactivés.
+- Pendant l'envoi : `title.disable()`, champ fichier `[disabled]`, bouton désactivé, et `upload()` sort immédiatement si un envoi est en cours (double clic ignoré). À la fin (succès ou échec), le titre est réactivé.
+- Interface : barre `<progress>` avec libellé « 42 % », « Traitement… » quand 100 % des octets sont partis mais que la réponse n'est pas arrivée, `role="status"` et `aria-live` pour les lecteurs d'écran.
+- `track.service.ts` : `reportUploadProgress: true` (l'ancienne option `reportProgress` est dépréciée en Angular 22).
+- **Découverte importante** : dans Angular 22, `HttpClient` utilise `fetch` par défaut, et l'API `fetch` ne sait pas rapporter la progression d'un envoi. Sans correction, aucun événement `UploadProgress` n'arrivait jamais en vrai. Ajout de `withXhr()` dans `provideHttpClient(...)` de `main.ts` (retour à `XMLHttpRequest`, qui expose `upload.onprogress`).
+- Journaux : seul le code HTTP est écrit pour l'envoi ; un `grep` sur tous les `console.*` du frontend confirme qu'aucun ne peut contenir le mot de passe ni le JWT (un `HttpErrorResponse` ne contient que la réponse, pas la requête envoyée).
+
+**Pourquoi un upload avec progression ne se traite pas comme une requête normale.** Un `http.post` classique émet une seule valeur (le corps de la réponse) puis se termine. Avec `reportUploadProgress` et `observe: 'events'`, l'Observable émet plusieurs événements de natures différentes (`Sent`, plusieurs `UploadProgress` avec `loaded` et `total`, `ResponseHeader`, puis `Response` qui contient le corps). Il faut donc lire `event.type` pour savoir quoi faire de chaque émission, au lieu de supposer que la première valeur est la réponse. Le pourcentage est simplement `loaded / total × 100`, arrondi : `loaded` est le nombre d'octets déjà envoyés, `total` la taille de la requête.
+
+**Vérifications réalisées (serveurs réels).** Fichier factice de 20 à 24 Mo envoyé par l'interface : le XHR émet bien `loadstart`, `progress` (loaded = total = 25 166 114 octets) puis la réponse ; l'interface passe de « 0 % » à « Traitement… » puis au succès, titre désactivé pendant tout l'envoi, double clic ignoré, formulaire vidé et piste en tête de liste ; fichiers de test supprimés ensuite. Limite : en local tout part en environ 0,1 s, un seul événement `progress` intermédiaire est émis ; pour voir la barre avancer il faut limiter le débit dans les DevTools (Network → « Slow 4G »).
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.**
+- Pourquoi l'état est un seul `status` plutôt que plusieurs booléens (impossible d'être à la fois « en cours » et « réussi »).
+- Pourquoi `withXhr()` est nécessaire pour la progression d'upload dans Angular 22 (`fetch` ne la fournit pas).
+- Comment le pourcentage se calcule et pourquoi `total` peut manquer.
