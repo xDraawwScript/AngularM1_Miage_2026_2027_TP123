@@ -19,8 +19,5 @@ Thumbs.db
 *.log
 npm-debug.log*
 
-# Notes personnelles (non partagées / non rendues)
+# Notes personnelles
 ANTISECHE-SOUTENANCE.md
-
-# Illustration perso (pochette) déposée à la main : jamais poussée
-frontend-starter/public/trident.png
