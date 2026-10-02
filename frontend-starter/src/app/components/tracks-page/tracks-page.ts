@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Track } from '../../shared/models/track.model';
 import { TRACKS_PER_PAGE, TrackService } from '../../shared/services/track.service';
 import { TrackCardComponent } from '../track-card/track-card';
-import { TridentComponent } from '../trident/trident';
+import { Trident3dComponent } from '../trident-3d/trident-3d';
 import { VideoBackgroundComponent } from '../video-background/video-background';
 import { TrackUploadComponent } from '../track-upload/track-upload';
 import { FrenchPaginatorIntl } from './mat-paginator-intl-fr';
@@ -36,7 +36,7 @@ function readVideoPreference(): boolean {
     MatPaginatorModule,
     TrackUploadComponent,
     TrackCardComponent,
-    TridentComponent,
+    Trident3dComponent,
     VideoBackgroundComponent,
   ],
   templateUrl: './tracks-page.html',

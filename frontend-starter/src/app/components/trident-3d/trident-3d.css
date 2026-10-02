@@ -1,0 +1,14 @@
+:host {
+  display: block;
+  user-select: none;
+}
+
+.stage {
+  width: 100%;
+  aspect-ratio: 1 / 0.75;
+  cursor: grab;
+}
+
+.stage:active {
+  cursor: grabbing;
+}

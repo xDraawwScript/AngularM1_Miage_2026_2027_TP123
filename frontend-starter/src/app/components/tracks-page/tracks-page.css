@@ -13,6 +13,9 @@
 
 .trident {
   position: absolute;
+  /* Au-dessus du bloc titre (transparent mais qui capterait sinon la souris) :
+     le trident 3D doit pouvoir être attrapé et tourné. */
+  z-index: 2;
   top: 1rem;
   right: 1vw;
   width: min(30vw, 420px);
