@@ -54,7 +54,7 @@ DevTools (F12) → onglet **Network** → filtre **Fetch/XHR**. Ne montre jamais
 ### `tp3-network-delete.png`
 1. Va sur `/tracks`, clique sur le « × » d'une piste de test et confirme.
 2. Clique sur la requête `DELETE /api/tracks/<id>`.
-3. Capture l'onglet **Headers** : méthode `DELETE`, statut `204`, header `Authorization: Bearer …` présent. Dans la liste, on doit voir ensuite le `GET /api/tracks?page=1&limit=5` de rafraîchissement.
+3. Capture l'onglet **Headers** : méthode `DELETE`, statut `204`, header `Authorization: Bearer …` présent. Dans la liste, on doit voir ensuite le `GET /api/tracks?page=1&limit=6` de rafraîchissement.
 
 ### `tp3-network-upload.png`
 1. Dans Network, mets le débit sur **Slow 4G** (menu « No throttling »), pour voir la progression avancer.

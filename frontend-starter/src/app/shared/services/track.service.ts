@@ -3,12 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { Page } from '../models/page.model';
 import { Track } from '../models/track.model';
 
+/** Nombre de pistes affichées par page (envoyé au serveur dans `limit`, repris par le paginateur). */
+export const TRACKS_PER_PAGE = 6;
+
 /** Encapsulates all HTTP operations for backing tracks. */
 @Injectable({ providedIn: 'root' })
 export class TrackService {
   private readonly http = inject(HttpClient);
 
-  list(page = 1, limit = 5) {
+  list(page = 1, limit = TRACKS_PER_PAGE) {
     return this.http.get<Page<Track>>('/api/tracks', {
       params: { page, limit },
     });

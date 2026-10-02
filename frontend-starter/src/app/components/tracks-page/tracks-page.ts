@@ -5,7 +5,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Track } from '../../shared/models/track.model';
-import { TrackService } from '../../shared/services/track.service';
+import { TRACKS_PER_PAGE, TrackService } from '../../shared/services/track.service';
 import { TrackCardComponent } from '../track-card/track-card';
 import { TridentComponent } from '../trident/trident';
 import { TrackUploadComponent } from '../track-upload/track-upload';
@@ -34,6 +34,8 @@ export class TracksPageComponent implements OnDestroy {
   /** Page affichée, à partir de 1. */
   readonly page = signal(1);
   readonly pages = signal(1);
+  /** Taille de page : la même valeur est envoyée au serveur et donnée au paginateur. */
+  readonly pageSize = TRACKS_PER_PAGE;
   /** Nombre total de pistes (toutes pages confondues) : c'est ce dont mat-paginator a besoin. */
   readonly total = signal(0);
   readonly loading = signal(false);

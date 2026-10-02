@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting, TestRequest } from '@a
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Page } from '../../shared/models/page.model';
 import { Track } from '../../shared/models/track.model';
+import { TRACKS_PER_PAGE } from '../../shared/services/track.service';
 import { TracksPageComponent } from './tracks-page';
 
 /** Fabrique une piste de test. */
@@ -19,9 +20,9 @@ const track = (id: string, title = `Piste ${id}`): Track => ({
 const page = (items: Track[], pageNumber = 1, total = items.length): Page<Track> => ({
   items,
   page: pageNumber,
-  limit: 5,
+  limit: TRACKS_PER_PAGE,
   total,
-  pages: Math.max(1, Math.ceil(total / 5)),
+  pages: Math.max(1, Math.ceil(total / TRACKS_PER_PAGE)),
 });
 
 describe('TracksPageComponent — liste et suppression', () => {
@@ -60,8 +61,13 @@ describe('TracksPageComponent — liste et suppression', () => {
     vi.restoreAllMocks();
   });
 
-  it('charge la première page au démarrage (GET /api/tracks?page=1&limit=5) et l’affiche', () => {
-    start([track('a'), track('b')]);
+  it('charge la première page au démarrage (GET /api/tracks?page=1&limit=6) et l’affiche', () => {
+    fixture = TestBed.createComponent(TracksPageComponent);
+    component = fixture.componentInstance;
+    const first = listRequest(1);
+    expect(first.request.params.get('limit')).toBe('6'); // 6 pistes par page
+    first.flush(page([track('a'), track('b')]));
+    fixture.detectChanges();
 
     expect(component.tracks().map((t) => t.id)).toEqual(['a', 'b']);
     expect(fixture.nativeElement.querySelectorAll('app-track-card').length).toBe(2);
@@ -143,12 +149,12 @@ describe('TracksPageComponent — liste et suppression', () => {
     });
 
     it('dernière piste d’une page > 1 : recharge la page précédente (pas de page vide)', () => {
-      start([track('z')], 2, 6);
+      start([track('z')], 2, 7); // 7 pistes = 6 sur la page 1 + 1 sur la page 2
 
       component.remove(track('z'));
       http.expectOne('/api/tracks/z').flush(null, { status: 204, statusText: 'No Content' });
 
-      listRequest(1).flush(page([track('a'), track('b')], 1, 5));
+      listRequest(1).flush(page([track('a'), track('b')], 1, 6));
       expect(component.page()).toBe(1);
     });
 

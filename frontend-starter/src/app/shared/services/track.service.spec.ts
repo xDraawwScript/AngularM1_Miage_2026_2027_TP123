@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpEventType, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { TrackService } from './track.service';
+import { TRACKS_PER_PAGE, TrackService } from './track.service';
 
 describe('TrackService', () => {
   let service: TrackService;
@@ -27,13 +27,14 @@ describe('TrackService', () => {
     req.flush({ items: [], page: 2, limit: 5, total: 0, pages: 1 });
   });
 
-  it('list() utilise page 1 et limit 5 par défaut', () => {
+  it('list() utilise page 1 et 6 pistes par page par défaut', () => {
     service.list().subscribe();
 
     const req = http.expectOne((r) => r.url === '/api/tracks');
+    expect(TRACKS_PER_PAGE).toBe(6);
     expect(req.request.params.get('page')).toBe('1');
-    expect(req.request.params.get('limit')).toBe('5');
-    req.flush({ items: [], page: 1, limit: 5, total: 0, pages: 1 });
+    expect(req.request.params.get('limit')).toBe('6');
+    req.flush({ items: [], page: 1, limit: 6, total: 0, pages: 1 });
   });
 
   it('remove() envoie DELETE /api/tracks/:id', () => {

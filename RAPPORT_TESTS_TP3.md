@@ -30,7 +30,7 @@ Méthode : `provideHttpClient()` + `provideHttpClientTesting()` ; `HttpTestingCo
 | Test | Résultat attendu | Observé |
 |---|---|---|
 | `list(2, 5)` | `GET /api/tracks`, paramètres `page=2`, `limit=5` | ✓ |
-| `list()` par défaut | `page=1`, `limit=5` | ✓ |
+| `list()` par défaut | `page=1`, `limit=6` (constante `TRACKS_PER_PAGE`) | ✓ |
 | `remove('abc123')` | `DELETE /api/tracks/abc123` | ✓ |
 | `upload()` | `POST /api/tracks`, `reportUploadProgress`, `FormData` avec `audio` (le fichier) et `title` ; événements `UploadProgress` puis `Response` émis | ✓ |
 | `audio('abc123')` | `GET /api/tracks/abc123/audio`, `responseType: 'blob'` | ✓ |
@@ -67,7 +67,7 @@ Méthode : `provideHttpClient()` + `provideHttpClientTesting()` ; `HttpTestingCo
 
 | Test | Résultat attendu | Observé |
 |---|---|---|
-| Chargement initial | `GET /api/tracks?page=1&limit=5`, deux cartes affichées | ✓ |
+| Chargement initial | `GET /api/tracks?page=1&limit=6`, deux cartes affichées | ✓ |
 | Échec HTTP 500 au chargement | `error()` = message du serveur, affiché dans le DOM (`.error`) | ✓ |
 | Suppression confirmée | `DELETE /api/tracks/a`, `deletingId` = `a` pendant l'appel, puis `GET` de rechargement, SnackBar contenant le titre, `deletingId` remis à `null` | ✓ |
 | Confirmation refusée | aucune requête `DELETE`, aucune notification | ✓ |

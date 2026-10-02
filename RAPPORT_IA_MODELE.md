@@ -609,3 +609,16 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 - `preuves/README.md` : tableau des 14 captures et étapes pour les deux captures Network à prendre à la main.
 
 **Ce que chaque membre sait maintenant expliquer sans l'agent.** Les six questions de la restitution orale (voir `schema-reponse-td3.html`) : pourquoi la suppression passe par un service ; comment le backend protège la suppression ; comment Angular calcule le pourcentage ; pourquoi les tests HTTP n'ont pas besoin de MongoDB ; ce que vérifie un test d'intercepteur ou de guard ; différence test unitaire / test d'intégration.
+
+## Évolution — 6 pistes par page
+
+**Objectif.** Passer de 5 à 6 pistes par page (demande de l'étudiant).
+
+**Ce qui a été fait.**
+- Une seule constante `TRACKS_PER_PAGE = 6` dans `track.service.ts` : elle est la valeur par défaut de `list()` (donc le `limit` envoyé au serveur) et elle est exposée par `TracksPageComponent` (`pageSize`) pour `mat-paginator`. Avant, le `5` était écrit à deux endroits indépendants (service et template) : on les change désormais ensemble, impossible de les désynchroniser.
+- Backend inchangé : il accepte déjà `limit` jusqu'à 20 (la valeur par défaut 5 du serveur ne sert que si le client n'envoie pas de `limit`, ce que le frontend ne fait jamais).
+- Tests mis à jour : `list()` par défaut = `limit=6` (et vérifie la valeur littérale 6), chargement initial avec `limit=6`, scénario « dernière piste d'une page > 1 » avec 7 pistes (6 + 1) ; `RAPPORT_TESTS_TP3.md` corrigé.
+
+**Vérifications réalisées.** `npm test` : 41/41. Navigateur (7 pistes réelles) : page 1 = 6 cartes (« 1 – 6 sur 7 »), page 2 = 1 carte (« 7 – 7 sur 7 »), requêtes `GET /api/tracks?page=N&limit=6` en 200 ; la grille donne 2 colonnes × 3 rangées dans le volet de test (3 colonnes × 2 sur grand écran).
+
+**Remarque.** Les captures `preuves/tp3-04` et `tp3-13`, prises avant ce changement, montrent encore 5 pistes par page ; l'étudiant peut les reprendre s'il veut des images cohérentes.
