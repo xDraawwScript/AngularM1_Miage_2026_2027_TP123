@@ -670,3 +670,38 @@ t'ai données pour l'autre ».
 
 **Ce que chaque membre sait maintenant expliquer sans l'agent.** Ce qui vient du package fourni et ce
 qui a été ajouté pendant les TP, et où trouver chaque document.
+
+## Vidéo de présentation (1 minute, hors dépôt)
+
+**Objectif.** Une vidéo d'une minute qui présente l'application, sur le modèle de la vidéo du projet NAM A2 WAM :
+en français, avec des sous-titres et sans voix. Elle montre les nouvelles fonctionnalités et un peu de l'existant.
+
+**Prompt principal.** « tu peux faire une vidéo similaire à celle du projet NAM_A2_WAM mais d'une seule minute ».
+
+**Choix validés par l'étudiant.**
+- Storyboard en 6 plans : intro, compte, bibliothèque, envoi et suppression, design, sous le capot et fin.
+- Musique : le morceau « Go With the Flow » présent dans la bibliothèque. Une seconde version utilise les sons de
+  l'ampli NAM (ses propres enregistrements), parce que le morceau de QOTSA est protégé (© UMG) et serait détecté
+  par Content ID sur YouTube.
+- Le fond vidéo YouTube n'est pas montré, parce que c'est le contenu d'un tiers.
+
+**Méthode.**
+- Projet séparé, hors du dépôt : `C:\Users\NITRO\Projects\TP123-video` (Remotion et Playwright).
+- Captures réelles de l'application construite (`ng build`), avec une API branchée sur une base **MongoDB locale
+  temporaire** (jamais Atlas).
+- Chaque action (frappe, clic, défilement, envoi) est capturée image par image. La progression d'envoi est réelle :
+  le débit montant est bridé par le protocole DevTools.
+- Le montage reprend l'identité Desert Sessions : rouge, noir, os, Pirata One et Archivo Narrow.
+
+**Piège.**
+- Le Chromium « headless shell » de Playwright affichait le bouton de fichier en anglais (« Choose file ») et le
+  lecteur audio restait figé à 0:00. Les captures ont donc été refaites avec Edge (`channel: 'msedge'`).
+- Le trident 3D tourne tout seul : il aurait changé d'angle d'une image à l'autre. Les captures se font donc avec
+  `prefers-reduced-motion`, qui coupe sa rotation, sauf pour le plan qui le montre.
+
+**Mise en ligne.** À la demande de l'étudiant, la vidéo est ajoutée au dépôt et placée en tête du README :
+`docs/video/guitar-practice-cloud-presentation.mp4`, avec une image d'aperçu `docs/video/poster.jpg`. C'est la version
+**avec les sons de l'ampli NAM**. La version avec « Go With the Flow » reste hors du dépôt, parce que le morceau
+est protégé et que le dépôt est public. Les sources de la vidéo (Remotion, scripts de tournage) restent hors du dépôt.
+
+**Fichiers modifiés dans le dépôt.** `README.md` (lien vers la vidéo en tête), `docs/video/`, `RAPPORT_IA_MODELE.md`.

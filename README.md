@@ -1,5 +1,9 @@
 # Guitar Practice Cloud — "Desert Sessions" edition
 
+[![Presentation video (1 min, French with subtitles): click to watch](docs/video/poster.jpg)](docs/video/guitar-practice-cloud-presentation.mp4)
+
+▶ **Presentation video (1 min, in French with subtitles):** [`docs/video/guitar-practice-cloud-presentation.mp4`](docs/video/guitar-practice-cloud-presentation.mp4)
+
 A web app to store and play your guitar **backing tracks**: create an account, upload audio files,
 browse your library page by page and play them in the browser. Angular 22 frontend, Node.js +
 Express 5 + MongoDB backend.
