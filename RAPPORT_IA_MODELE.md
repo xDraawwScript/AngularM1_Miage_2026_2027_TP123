@@ -634,3 +634,39 @@ Prises par l'étudiant dans les DevTools, conformément à la consigne du sujet.
 **Défaut trouvé grâce aux captures et corrigé.** Sur mobile, le trident 3D passait **par-dessus** le texte d'introduction : pour pouvoir l'attraper à la souris sur ordinateur, il avait été placé au premier plan (`z-index: 2`), ce qui s'appliquait aussi au petit écran où il n'est qu'un décor atténué. Correction dans `tracks-page.css` (media query ≤ 960 px) : `z-index: auto` et `pointer-events: none`, il repasse derrière le texte et ne bloque plus le défilement au doigt. Vérifié par script (le point central du trident renvoie un élément de la page, pas le trident).
 
 **Piège.** Sur une capture, un bouton apparaissait « survolé » : le pointeur virtuel était resté à l'endroit du dernier clic. Le script éloigne désormais le pointeur avant de capturer.
+
+## README du dépôt, en anglais (présentation du projet)
+
+**Objectif.** Le `README.md` était encore celui du package étudiant : il ne disait ni qui a fait le
+projet, ni ce qui a été ajouté au starter. Demande de l'étudiant : un README **en anglais** avec
+l'auteur (Mathys Bellini--Le Gall), des renvois vers les documents qui expliquent l'architecture et
+les routes du backend, et la liste de ce qui a été développé en plus de la base ; mêmes consignes que
+pour le README du projet NAM A2 WAM.
+
+**Prompt principal.** « tu peux mieux faire le readme de base avec les mêmes instructions que je
+t'ai données pour l'autre ».
+
+**Ce qui a été fait.**
+- Nouveau haut de page : auteur, dépôt, point de départ (package de Michel Buffa), capture de la
+  bibliothèque, sommaire.
+- *What was built on top of the starter* : tableau par domaine (comptes, bibliothèque, upload,
+  suppression, design Desert Sessions, fond vidéo et trident 3D, tests), avec la mention que les
+  routes du backend n'ont pas été modifiées.
+- Galerie de captures (`preuves/tp3-*.png`, bureau et mobile) et renvoi vers `preuves/README.md`.
+- *Quick start* (backend, frontend, compte démo, tests), *Architecture* (schéma Angular → Express →
+  MongoDB + disque, rôle des dossiers, renvoi vers les `schema-reponse-td*.html`), *Backend API*
+  (les 9 routes, en anglais, d'après `API_CONTRACT.md` et `backend/src/app.js`), *Tests* (41 frontend,
+  14 backend), *Documentation map* (chaque document, son contenu, sa langue), *AI assistance*.
+- L'ancien README (français) est **conservé en dessous** (« Original package README »), titres
+  descendus d'un niveau.
+
+**Vérifications réalisées.**
+- Chaque affirmation relue dans le code : routes et limites (`app.js` : JWT 2 h, 25 Mo, `limit`
+  1-20), nombre de tests par fichier, noms des tests backend d'origine, contenu du starter d'origine
+  (commit `3d1080c`).
+- Les 51 liens relatifs du README (fichiers, images, ancres) existent : script Node.
+
+**Fichiers modifiés.** `README.md`, `RAPPORT_IA_MODELE.md`. Aucun code de l'application.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.** Ce qui vient du package fourni et ce
+qui a été ajouté pendant les TP, et où trouver chaque document.
